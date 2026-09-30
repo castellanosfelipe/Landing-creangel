@@ -8,6 +8,8 @@
   --space-20:80px; --space-24:96px; --gutter:48px; --section-space:80px;
   --type-h1:clamp(40px,4vw,56px); --type-h2:clamp(32px,3vw,42px);
   --type-h3:26px; --type-body:17px; --type-small:14px; --type-label:14px;
+  --motion-quick:160ms; --motion-standard:200ms;
+  --motion-ease:cubic-bezier(.2,.7,.2,1);
 }
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; scroll-padding-top:104px; }
@@ -615,3 +617,66 @@ td,th { border:1px solid var(--line); padding:16px; vertical-align:top; text-ali
   .feature-detail { padding:0 16px 20px; }
 }
 @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+
+/* Purposeful motion: interaction feedback and a single orientation cue.
+   Content is fully visible before JavaScript runs. */
+.desktop-nav>a,.desktop-nav>button,.mobile-toggle,
+.mega-grid a,.mobile-nav a,.text-link,.product-entry h3 a,
+.capability-summary h3 a,.feature-reset,.youtube-play,
+.feature-category-nav a,
+.feature-item>summary,.feature-more,
+.platform-node,.platform-layer,.capability-map-node,
+.case-card>a,.article-card>a,.contact-method a {
+  transition:color var(--motion-quick) var(--motion-ease),
+    background-color var(--motion-quick) var(--motion-ease),
+    border-color var(--motion-quick) var(--motion-ease),
+    box-shadow var(--motion-quick) var(--motion-ease);
+}
+.btn,.round-link {
+  transition:background-color var(--motion-quick) var(--motion-ease),
+    border-color var(--motion-quick) var(--motion-ease),
+    color var(--motion-quick) var(--motion-ease),
+    transform var(--motion-quick) var(--motion-ease);
+}
+.desktop-nav>button[aria-expanded=true] { color:var(--blue); text-decoration:underline; }
+.mobile-toggle[aria-expanded=true] { border-color:var(--blue); background:var(--paper); }
+.mega:not([hidden]),.mobile-nav:not([hidden]) {
+  animation:menu-reveal var(--motion-standard) var(--motion-ease) both;
+}
+@keyframes menu-reveal {
+  from { opacity:.86; transform:translateY(-6px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.hero-home h1::after {
+  transform-origin:left center;
+  animation:accent-reveal 480ms var(--motion-ease) both;
+}
+.hero-home .hero-copy>p { animation:hero-context 400ms var(--motion-ease) 60ms both; }
+.hero-home .hero-copy>.actions { animation:hero-context 400ms var(--motion-ease) 110ms both; }
+@keyframes accent-reveal {
+  from { opacity:.72; transform:scaleX(.42); }
+  to { opacity:1; transform:scaleX(1); }
+}
+@keyframes hero-context {
+  from { opacity:.94; transform:translateY(6px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.mega-grid a:hover,.mega-grid a:focus-visible { border-top-color:var(--yellow); }
+.feature-item>summary:hover,.feature-item[open]>summary { background:#f7f9fb; }
+.feature-item>summary:hover .feature-more,.feature-item[open] .feature-more { color:var(--ink); }
+.feature-category-nav a:focus-visible { background:var(--paper); }
+.capability-map-node:focus-visible { border-color:var(--blue); background:#f8fbff; }
+.case-card>a,.article-card>a { box-shadow:0 0 0 1px transparent; }
+.case-card>a:hover,.article-card>a:hover,
+.case-card>a:focus-visible,.article-card>a:focus-visible {
+  box-shadow:0 0 0 1px var(--line);
+}
+.contact-method a:hover { color:var(--blue-hover); }
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference) {
+  .btn:hover,.round-link:hover { transform:translateY(-2px); }
+  .btn:active,.round-link:active { transform:translateY(0); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .hero-home h1::after,.hero-home .hero-copy>p,.hero-home .hero-copy>.actions,
+  .mega:not([hidden]),.mobile-nav:not([hidden]) { animation:none!important; transform:none!important; }
+}

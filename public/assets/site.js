@@ -248,3 +248,41 @@ zoom?.querySelector('.zoom-close').addEventListener('click',()=>zoom.close());zo
 document.querySelectorAll('[data-youtube]').forEach(button=>button.addEventListener('click',()=>{const frame=document.createElement('iframe');frame.src='https://www.youtube-nocookie.com/embed/'+button.dataset.youtube+'?autoplay=1';frame.title=button.dataset.title;frame.allow='autoplay; encrypted-media; picture-in-picture';frame.allowFullscreen=true;frame.referrerPolicy='strict-origin-when-cross-origin';button.closest('.youtube-player').replaceChildren(frame);frame.focus()}));
 const siteSearch=document.querySelector('#siteSearch');
 if(siteSearch){const data=JSON.parse(document.querySelector('#searchIndex').textContent),list=document.querySelector('#siteResults'),count=document.querySelector('#siteResultCount');function search(){const q=fold(siteSearch.value);const matches=data.filter(p=>!q||fold(p.title+' '+p.description+' '+p.type+' '+(p.keywords||'')).includes(q));list.replaceChildren();for(const p of matches){const li=document.createElement('li'),type=document.createElement('div'),h=document.createElement('h2'),a=document.createElement('a'),d=document.createElement('p');type.className='result-type';type.textContent=p.type;a.href=p.href;a.textContent=p.title;h.append(a);d.textContent=p.description;li.append(type,h,d);list.append(li)}count.textContent=matches.length+' resultados';document.querySelector('#siteSearchEmpty').hidden=matches.length!==0;}siteSearch.addEventListener('input',search);const q=new URLSearchParams(location.search).get('q');if(q)siteSearch.value=q;search();}
+
+// Reveal only existing diagram groups. The underlying content remains visible
+// without JavaScript, while scrolling, and when reduced motion is requested.
+const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+const motionGroups = document.querySelectorAll(
+  '.platform-diagram .platform-audience-block,' +
+  '.platform-diagram .platform-masthead,' +
+  '.platform-diagram .platform-products-grid,' +
+  '.platform-diagram .platform-shared,' +
+  '.platform-diagram .platform-source-block,' +
+  '.capability-map'
+);
+if (motionGroups.length && 'IntersectionObserver' in window && typeof Element.prototype.animate === 'function') {
+  const activeMotion = new Set();
+  const motionObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      motionObserver.unobserve(entry.target);
+      if (motionPreference.matches || document.visibilityState === 'hidden') continue;
+      const compact = matchMedia('(max-width: 780px)').matches;
+      const animation = entry.target.animate(
+        [
+          { opacity: compact ? .92 : .84, transform: `translateY(${compact ? 4 : 8}px)` },
+          { opacity: 1, transform: 'translateY(0)' }
+        ],
+        { duration: compact ? 280 : 420, easing: 'cubic-bezier(.22,1,.36,1)' }
+      );
+      activeMotion.add(animation);
+      const release = () => activeMotion.delete(animation);
+      animation.addEventListener('finish', release, { once: true });
+      animation.addEventListener('cancel', release, { once: true });
+    }
+  }, { threshold: .08, rootMargin: '0px 0px -30px 0px' });
+  motionGroups.forEach(group => motionObserver.observe(group));
+  motionPreference.addEventListener('change', () => {
+    if (motionPreference.matches) activeMotion.forEach(animation => animation.cancel());
+  });
+}
