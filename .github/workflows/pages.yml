@@ -1,0 +1,51 @@
+name: Publicar Creangel en GitHub Pages
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - name: Obtener sitio
+        uses: actions/checkout@v6
+      - name: Obtener URL de Pages
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Adaptar rutas y metadatos
+        env:
+          PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: python3 .pages/export.py --base-url "$PAGES_BASE_URL"
+      - name: Verificar contenido y enlaces
+        env:
+          PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: python3 .pages/check.py --base-url "$PAGES_BASE_URL"
+      - name: Preparar artefacto público
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v4
