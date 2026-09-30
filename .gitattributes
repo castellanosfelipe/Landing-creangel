@@ -1,0 +1,7 @@
+# Preserve every audited public file exactly, including SVG and HTML line endings.
+public/** -text
+.pages/*.py text eol=lf
+.pages/*.json text eol=lf
+.github/workflows/*.yml text eol=lf
+README.md text eol=lf
+.gitignore text eol=lf
