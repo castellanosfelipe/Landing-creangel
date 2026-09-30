@@ -1,8 +1,6 @@
 {
   "source_origin": "https://portal.creangel.com",
   "routes": [
-    "/casos-de-exito/ministerio-vivienda-deut/",
-    "/casos-de-exito/ministerio-vivienda-titulaciones/",
     "/productos/",
     "/productos/ifindit-search/",
     "/productos/ifindit-dashboard/",

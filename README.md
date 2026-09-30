@@ -1,6 +1,6 @@
 # Creangel · GitHub Pages
 
-Sitio completo de Creangel, con 62 páginas, cinco productos IFINDIT, 1.222 características públicas, 12 casos, 18 artículos y toda la multimedia disponible. Mantiene el formulario Jira y las tablas de Colombia Compra Eficiente. El diseño y el contenido coinciden con la entrega de producción.
+Sitio completo de Creangel, con 60 páginas, cinco productos IFINDIT, 1.222 características públicas, 10 casos, 18 artículos y la multimedia publicada. Mantiene el formulario Jira y las tablas de Colombia Compra Eficiente. El diseño y el contenido coinciden con la entrega de producción.
 
 Repositorio: https://github.com/castellanosfelipe/Landing-creangel
 
@@ -41,6 +41,6 @@ El exportador requiere una carpeta de salida vacía para evitar contenido residu
 
 ## Contenido editable
 
-Los HTML, CSS, JavaScript, documentos e imágenes están en `public/`. Los cambios del sitio se hacen allí y se publican mediante el workflow. Los scripts de `.pages/` adaptan únicamente metadatos, políticas compatibles con Pages y rutas históricas; conservan el cuerpo visible de las 62 páginas y los bytes de los activos.
+Los HTML, CSS, JavaScript, documentos e imágenes están en `public/`. Los cambios del sitio se hacen allí y se publican mediante el workflow. Los scripts de `.pages/` adaptan únicamente metadatos, políticas compatibles con Pages y rutas históricas; conservan el cuerpo visible de las 60 páginas y los bytes de los activos.
 
 Referencias oficiales: [workflows para Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), [404 personalizado](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site), [límites de Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits).
