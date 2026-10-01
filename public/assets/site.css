@@ -504,11 +504,19 @@ td,th { border:1px solid var(--line); padding:16px; vertical-align:top; text-ali
   *,*::before,*::after { transition:none!important; animation:none!important; }
 }
 
-/* Supplied product illustrations: preserve the complete scene and native ratio. */
-.hero-product-illustration .hero-grid { grid-template-columns:1fr; gap:32px; }
+/* Supplied product illustrations: compact alongside the product introduction. */
+.hero-product-illustration .hero-grid { grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:48px; align-items:center; }
+.hero-product-illustration .hero-copy p { margin-bottom:0; }
+.hero-product-illustration .product-illustration { width:100%; max-width:480px; justify-self:end; }
 .product-illustration .media-zoom { padding:0; overflow:hidden; }
 .product-illustration .media-zoom img { width:100%; height:auto; object-fit:contain; }
-.product-illustration figcaption { max-width:90ch; }
+@media(max-width:850px) {
+  .hero-product-illustration .hero-grid { grid-template-columns:1fr; gap:28px; }
+  .hero-product-illustration .product-illustration { max-width:400px; justify-self:start; }
+}
+@media(max-width:600px) {
+  .hero-product-illustration .product-illustration { max-width:320px; }
+}
 
 /* Product capabilities and complete, progressively navigable catalogue. */
 .feature-overview { padding-top:0; }
