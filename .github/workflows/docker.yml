@@ -1,0 +1,36 @@
+name: Verificar despliegue Docker Compose
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Obtener sitio
+        uses: actions/checkout@v6
+      - name: Validar configuración
+        run: docker compose config --quiet
+      - name: Construir y arrancar
+        run: docker compose up --build --detach --wait --wait-timeout 90
+      - name: Validar Nginx
+        run: docker compose exec -T web nginx -t
+      - name: Verificar HTTP, rutas, integraciones y multimedia
+        run: python3 .docker/verify.py --report _docker-http.json
+      - name: Guardar informe HTTP
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-http
+          path: _docker-http.json
+          if-no-files-found: ignore
+      - name: Mostrar registros y detener
+        if: always()
+        run: |
+          docker compose logs --tail 30
+          docker compose down

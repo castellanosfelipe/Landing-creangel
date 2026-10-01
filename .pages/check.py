@@ -26,6 +26,7 @@ def check(source, root, base_url, config):
     source, root=fs(source),fs(root)
     base_url=base_url.rstrip('/')+'/'
     base=urlsplit(base_url); parsed={};errors=[];count=0
+    origin_changed=config['source_origin'].rstrip('/')+'/' != base_url
     for file in root.rglob('*.html'):
         parsed[file]=Page(file.read_text('utf-8'))
     for file, page in parsed.items():
@@ -56,7 +57,7 @@ def check(source, root, base_url, config):
         after=(root/name).read_text('utf-8').partition('</head>')[2]
         if before!=after:errors.append({'code':'body_changed','file':name})
         else:preserved+=1
-        if config['source_origin']+'/' in (root/name).read_text('utf-8').partition('</head>')[0]:
+        if origin_changed and config['source_origin']+'/' in (root/name).read_text('utf-8').partition('</head>')[0]:
             errors.append({'code':'old_metadata_origin','file':name})
     asset_count=0
     for file in source.rglob('*'):
@@ -73,7 +74,7 @@ def check(source, root, base_url, config):
         if file not in parsed or parsed[file].canonical!=base_url.rstrip('/')+new:
             errors.append({'code':'historical_page_missing','path':old})
     for name in ['sitemap.xml','robots.txt']:
-        if config['source_origin']+'/' in (root/name).read_text('utf-8'):
+        if origin_changed and config['source_origin']+'/' in (root/name).read_text('utf-8'):
             errors.append({'code':'old_metadata_origin','file':name})
     if parsed[root/'404.html'].base!=base.path:
         errors.append({'code':'404_base'})
