@@ -857,6 +857,15 @@ figure.product-wheel {
   font-weight:650;
   line-height:1.5;
 }
+.product-wheel-legend a.is-wheel-highlighted {
+  background:#e7f1fa;
+  border-left-color:#ffd127;
+}
+.product-wheel-legend a.is-wheel-highlighted strong {
+  color:#0b4b82;
+  text-decoration:underline;
+  text-underline-offset:4px;
+}
 
 .product-wheel-context {
   margin-top:28px;
@@ -917,6 +926,15 @@ figure.product-wheel {
 }
 .product-wheel-home .product-entry p { margin:0; font-size:15px; line-height:1.6; }
 .product-wheel-home .round-link { transform:none; }
+.product-wheel-home .product-entry.is-wheel-highlighted {
+  background:#eef5fb;
+  border-bottom-color:#9bbbd5;
+}
+.product-wheel-home .product-entry.is-wheel-highlighted h3 a {
+  color:#0b4b82;
+  text-decoration:underline;
+  text-underline-offset:4px;
+}
 
 @media (max-width:1100px) {
   .product-wheel-layout { gap:32px; }

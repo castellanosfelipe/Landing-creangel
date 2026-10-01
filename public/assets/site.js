@@ -521,3 +521,51 @@ for (const map of document.querySelectorAll('.capability-map[data-map-count]')) 
   document.fonts?.ready.then(schedule);
   schedule();
 }
+
+/* Preview the matching product title while exploring the wheel. Native links
+   and the current-page marker keep their existing behaviour. */
+for (const layout of document.querySelectorAll('.product-wheel-layout')) {
+  const sectors = [...layout.querySelectorAll('.product-wheel-sector[data-wheel-product]')];
+  const rows = [...layout.querySelectorAll('.product-entry, .product-wheel-legend-item')];
+  const pathFor = link => {
+    try { return new URL(link.getAttribute('href'), document.baseURI).pathname.replace(/\/+$/, ''); }
+    catch { return null; }
+  };
+  const pairs = sectors.map(sector => ({
+    sector,
+    row: rows.find(row => {
+      const link = row.matches('.product-entry') ? row.querySelector('h3 a[href]') : row;
+      return link && pathFor(link) === pathFor(sector);
+    })
+  })).filter(pair => pair.row);
+  let hovered = null, focused = null, active = null;
+  const update = () => {
+    const next = hovered || focused;
+    if (next === active) return;
+    active = next;
+    for (const pair of pairs) pair.row.classList.toggle('is-wheel-highlighted', pair.sector === next);
+  };
+  for (const { sector } of pairs) {
+    const pointAt = event => {
+      if (event.pointerType === 'touch' || hovered === sector) return;
+      hovered = sector;
+      update();
+    };
+    sector.addEventListener('pointerenter', pointAt);
+    sector.addEventListener('pointermove', pointAt);
+    sector.addEventListener('pointerleave', () => {
+      if (hovered === sector) hovered = null;
+      update();
+    });
+    sector.addEventListener('focusin', () => {
+      if (!sector.matches(':focus-visible')) return;
+      focused = sector;
+      hovered = null;
+      update();
+    });
+    sector.addEventListener('focusout', () => {
+      if (focused === sector) focused = null;
+      update();
+    });
+  }
+}
