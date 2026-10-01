@@ -1,4 +1,85 @@
 'use strict';
+/* Same-page links share one interruptible, accessible scroll transition. */
+const scrollMotionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+let cancelPageScroll = null;
+
+function stopPageScroll() {
+  cancelPageScroll?.();
+}
+window.addEventListener('popstate', stopPageScroll);
+window.addEventListener('hashchange', stopPageScroll);
+
+function scrollToPageTarget(target, { focus = true, animate = true } = {}) {
+  stopPageScroll();
+  closeMenus();
+  let frame;
+  let cancelled = false;
+  const cancel = () => {
+    cancelled = true;
+    cancelAnimationFrame(frame);
+    if (cancelPageScroll === cancel) cancelPageScroll = null;
+  };
+  cancelPageScroll = cancel;
+  frame = requestAnimationFrame(() => {
+    if (cancelled || !target.isConnected) return cancel();
+    const padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+    const header = document.querySelector('.site-header')?.getBoundingClientRect().height || 0;
+    const offset = Math.max(padding, margin, header + 24);
+    const start = window.scrollY;
+    const maximum = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const destination = Math.max(0, Math.min(maximum, start + target.getBoundingClientRect().top - offset));
+    const distance = destination - start;
+    const finish = () => {
+      if (cancelled) return;
+      window.scrollTo({ top: destination, behavior: 'instant' });
+      cancelPageScroll = null;
+      if (focus) {
+        if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
+      }
+    };
+    if (!animate || scrollMotionPreference.matches || Math.abs(distance) < 2) return finish();
+    const duration = Math.min(1600, Math.max(1100, Math.abs(distance) * .4));
+    const started = performance.now();
+    const step = now => {
+      if (cancelled) return;
+      if (scrollMotionPreference.matches) return finish();
+      const progress = Math.min(1, (now - started) / duration);
+      const eased = (1 - Math.cos(Math.PI * progress)) / 2;
+      window.scrollTo({ top: start + distance * eased, behavior: 'instant' });
+      if (progress < 1) frame = requestAnimationFrame(step);
+      else finish();
+    };
+    frame = requestAnimationFrame(step);
+  });
+}
+
+function enablePageNavigation() {
+  // Register after the catalogue handler: it reveals filtered destinations first.
+  document.addEventListener('click', event => {
+    if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const anchor = event.target.closest('a[href]');
+    if (!anchor || anchor.hasAttribute('download') || (anchor.target && anchor.target !== '_self')) return;
+    let destination;
+    try { destination = new URL(anchor.href, location.href); }
+    catch { return; }
+    if (destination.origin !== location.origin || destination.pathname !== location.pathname || destination.search !== location.search || !destination.hash) return;
+    let id;
+    try { id = decodeURIComponent(destination.hash.slice(1)); }
+    catch { return; }
+    const target = document.getElementById(id);
+    if (!target) return;
+    event.preventDefault();
+    if (location.hash !== destination.hash) history.pushState(null, '', destination.hash);
+    scrollToPageTarget(target);
+  });
+  for (const type of ['wheel', 'touchstart', 'pointerdown']) {
+    window.addEventListener(type, stopPageScroll, { passive: true });
+  }
+  window.addEventListener('keydown', stopPageScroll);
+}
+
 const menuButton=document.querySelector('#menuToggle'),mobileMenu=document.querySelector('#mobileNav'),productButton=document.querySelector('#productToggle'),productMenu=document.querySelector('#productMenu');
 function closeMenus(){for(const [button,panel] of [[menuButton,mobileMenu],[productButton,productMenu]]){if(button&&panel){button.setAttribute('aria-expanded','false');panel.hidden=true}}}
 for(const [button,panel] of [[menuButton,mobileMenu],[productButton,productMenu]])button?.addEventListener('click',()=>{const open=panel.hidden;closeMenus();panel.hidden=!open;button.setAttribute('aria-expanded',String(open));});
@@ -252,14 +333,8 @@ if (featureCatalog) {
     renderPagination(total, pageCount, first, last);
   }
 
-  function scrollToCatalogTarget(target, focus) {
-    requestAnimationFrame(() => {
-      target.scrollIntoView({ block: 'start', behavior: 'instant' });
-      if (focus) {
-        target.setAttribute('tabindex', '-1');
-        target.focus({ preventScroll: true });
-      }
-    });
+  function scrollToCatalogTarget(target, focus, animate = true) {
+    scrollToPageTarget(target, { focus, animate });
   }
 
   function readHash() {
@@ -267,7 +342,7 @@ if (featureCatalog) {
     catch { return ''; }
   }
 
-  function applyCatalogHash({ focus = false, scroll = true } = {}) {
+  function applyCatalogHash({ focus = false, scroll = true, animate = true } = {}) {
     const id = readHash();
     const match = featureById.get(id);
     if (match) {
@@ -276,7 +351,7 @@ if (featureCatalog) {
       currentPage = Math.floor(match.category.rows.indexOf(match.row) / pageSize) + 1;
       renderFeatures();
       match.row.element.setAttribute('tabindex', '-1');
-      if (scroll) scrollToCatalogTarget(match.row.element, focus);
+      if (scroll) scrollToCatalogTarget(match.row.element, focus, animate);
       return true;
     }
     if (id === 'caracteristicas' || categoryById.has(id)) {
@@ -284,16 +359,16 @@ if (featureCatalog) {
       featureInput.value = '';
       currentPage = 1;
       renderFeatures();
-      if (scroll) scrollToCatalogTarget(id === 'caracteristicas' ? featureCatalog : featurePanelTitle, focus);
+      if (scroll) scrollToCatalogTarget(id === 'caracteristicas' ? featureCatalog : featurePanelTitle, focus, animate);
       return true;
     }
     return false;
   }
 
-  function navigateCatalog(id, { focus = true, scroll = true } = {}) {
+  function navigateCatalog(id, { focus = true, scroll = true, animate = true } = {}) {
     const hash = '#' + encodeURIComponent(id);
     if (location.hash !== hash) history.pushState(null, '', hash);
-    applyCatalogHash({ focus, scroll });
+    applyCatalogHash({ focus, scroll, animate });
   }
 
   featureCatalog.classList.add('catalog-enhanced');
@@ -339,11 +414,12 @@ if (featureCatalog) {
       featureInput.value = '';
       currentPage = 1;
       renderFeatures();
-    } else applyCatalogHash({ focus: true });
+    } else applyCatalogHash({ focus: true, animate: false });
   });
   renderFeatures();
-  applyCatalogHash({ focus: true });
+  applyCatalogHash({ focus: true, animate: false });
 }
+enablePageNavigation();
 const galleryInput=document.querySelector('#gallerySearch');
 if(galleryInput){const cards=[...document.querySelectorAll('#resourceGallery .media-card')];galleryInput.addEventListener('input',()=>{const q=fold(galleryInput.value);let count=0;cards.forEach(card=>{card.hidden=!!q&&!fold(card.dataset.search||card.textContent).includes(q);if(!card.hidden)count++});document.querySelector('#galleryCount').textContent=count+' imágenes';document.querySelector('#galleryEmpty').hidden=count!==0});}
 let lastFocus;const zoom=document.querySelector('#imageDialog');
