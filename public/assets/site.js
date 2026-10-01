@@ -466,3 +466,58 @@ if (motionGroups.length && 'IntersectionObserver' in window && typeof Element.pr
     if (motionPreference.matches) activeMotion.forEach(animation => animation.cancel());
   });
 }
+
+/* Decorative connectors follow the real card positions after layout or resize. */
+for (const map of document.querySelectorAll('.capability-map[data-map-count]')) {
+  const svg = map.querySelector('.capability-map-connectors');
+  const center = map.querySelector('.capability-map-center');
+  const nodes = [...map.querySelectorAll('.capability-map-node')];
+  if (!svg || !center) continue;
+  let scheduled = null;
+  const draw = () => {
+    scheduled = null;
+    svg.replaceChildren();
+    if (getComputedStyle(svg).display === 'none') return;
+    const box = map.getBoundingClientRect(), core = center.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+    const cx = core.left - box.left + core.width / 2;
+    const cy = core.top - box.top + core.height / 2;
+    const rx = core.width / 2 + 60, ry = core.height / 2 + 60;
+    const element = (tag, attributes) => {
+      const shape = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [name, value] of Object.entries(attributes)) shape.setAttribute(name, String(value));
+      svg.append(shape);
+      return shape;
+    };
+    element('ellipse', { cx, cy, rx, ry, class: 'map-orbit' });
+    for (const node of nodes) {
+      const rect = node.getBoundingClientRect();
+      const nx = rect.left - box.left + rect.width / 2;
+      const ny = rect.top - box.top + rect.height / 2;
+      const position = node.dataset.mapPosition;
+      const vertical = position === 'top' || position === 'bottom';
+      const sign = vertical ? (position === 'top' ? 1 : -1) : (nx < cx ? 1 : -1);
+      const sx = vertical ? nx : nx + sign * (rect.width / 2 + 9);
+      const sy = vertical ? ny + sign * (rect.height / 2 + 9) : ny;
+      const angle = Math.atan2((ny - cy) / ry, (nx - cx) / rx);
+      const ex = cx + rx * Math.cos(angle), ey = cy + ry * Math.sin(angle);
+      const bend = Math.min(48, Math.max(20, Math.hypot(ex - sx, ey - sy) / 2));
+      const path = vertical
+        ? `M ${sx} ${sy} C ${sx} ${sy + sign * bend} ${ex} ${ey - sign * bend} ${ex} ${ey}`
+        : `M ${sx} ${sy} C ${sx + sign * bend} ${sy} ${ex - sign * bend} ${ey} ${ex} ${ey}`;
+      element('path', { d: path, class: 'map-connection' });
+      element('circle', { cx: sx, cy: sy, r: 4.5, class: 'map-port' });
+      element('circle', { cx: ex, cy: ey, r: 4.5, class: 'map-port' });
+    }
+  };
+  const schedule = () => {
+    if (scheduled === null) scheduled = requestAnimationFrame(draw);
+  };
+  if ('ResizeObserver' in window) {
+    const observer = new ResizeObserver(schedule);
+    for (const target of [map, center, ...nodes]) observer.observe(target);
+  }
+  window.addEventListener('resize', schedule, { passive: true });
+  document.fonts?.ready.then(schedule);
+  schedule();
+}
