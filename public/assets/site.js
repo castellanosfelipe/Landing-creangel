@@ -14,6 +14,11 @@ if (featureCatalog) {
   const featureReset = featureCatalog.querySelector('#featureReset');
   const featureSelect = featureCatalog.querySelector('#featureCategory');
   const featurePanelTitle = featureCatalog.querySelector('#featurePanelTitle');
+  const pagination = [...featureCatalog.querySelectorAll('[data-feature-pagination]')].map(element => ({
+    element,
+    info: element.querySelector('.feature-page-info'),
+    controls: element.querySelector('.feature-page-controls')
+  }));
   const categoryLinks = [...document.querySelectorAll('[data-category-target]')];
   const categories = [...featureCatalog.querySelectorAll('.feature-category')].map(group => ({
     id: group.id,
@@ -23,38 +28,30 @@ if (featureCatalog) {
     rows: [...group.querySelectorAll('.feature-item')].map(element => {
       const title = element.querySelector('.feature-title');
       const excerpt = element.querySelector('.feature-excerpt');
-      const description = element.querySelector('.feature-description');
-      const more = element.querySelector('.feature-more');
-      const row = {
+      const badge = element.querySelector('.feature-category-name');
+      const descriptionText = element.dataset.searchDescription || excerpt.textContent;
+      return {
         id: element.id,
         element,
-        title,
+        title: title.querySelector('a') || title,
         excerpt,
-        description,
-        badge: element.querySelector('.feature-category-name'),
+        badge,
         titleText: title.textContent,
         excerptText: excerpt.textContent,
-        descriptionText: description.textContent,
-        searchText: fold(title.textContent + ' ' + description.textContent)
+        categoryText: badge?.textContent || group.dataset.categoryName || '',
+        descriptionText,
+        searchText: fold([title.textContent, badge?.textContent || group.dataset.categoryName || '',
+          excerpt.textContent, descriptionText].join(' '))
       };
-      if (more) {
-        const moreLabel = document.createTextNode('Ver detalle ');
-        const moreIcon = document.createElement('span');
-        moreIcon.setAttribute('aria-hidden', 'true');
-        moreIcon.textContent = '+';
-        more.replaceChildren(moreLabel, moreIcon);
-        const updateMore = () => { moreLabel.textContent = element.open ? 'Ocultar detalle ' : 'Ver detalle '; };
-        element.addEventListener('toggle', updateMore);
-        updateMore();
-      }
-      return row;
     })
   }));
   const categoryById = new Map(categories.map(category => [category.id, category]));
   const featureById = new Map(categories.flatMap(category => category.rows.map(row => [row.id, { row, category }])));
   const initialCategory = categoryById.has(featureCatalog.dataset.initialCategory)
     ? featureCatalog.dataset.initialCategory : (categories[0]?.id || 'all');
+  const pageSize = 10;
   let selectedCategory = initialCategory;
+  let currentPage = 1;
 
   // Offsets preserve the source spelling while matching accents and case independently.
   function searchableOffsets(text) {
@@ -77,37 +74,54 @@ if (featureCatalog) {
     return { normalized, starts, ends };
   }
 
-  function paintMatches(element, text, query) {
-    if (!query) {
+  function paintMatches(element, text, tokens) {
+    if (!element) return;
+    if (!tokens.length) {
       if (element.textContent !== text || element.querySelector('mark')) element.textContent = text;
       return;
     }
     const { normalized, starts, ends } = searchableOffsets(text);
-    const fragment = document.createDocumentFragment();
-    let from = 0, found = normalized.indexOf(query), next = 0;
-    while (found !== -1) {
-      const start = starts[found], end = ends[found + query.length - 1];
-      if (start >= from) {
-        fragment.append(document.createTextNode(text.slice(from, start)));
-        const mark = document.createElement('mark');
-        mark.className = 'feature-match';
-        mark.textContent = text.slice(start, end);
-        fragment.append(mark);
-        from = end;
+    const ranges = [];
+    for (const token of tokens) {
+      let found = normalized.indexOf(token);
+      while (found !== -1) {
+        ranges.push([starts[found], ends[found + token.length - 1]]);
+        found = normalized.indexOf(token, found + token.length);
       }
-      next = found + query.length;
-      found = normalized.indexOf(query, next);
+    }
+    ranges.sort((left, right) => left[0] - right[0] || left[1] - right[1]);
+    const merged = [];
+    for (const range of ranges) {
+      const previous = merged[merged.length - 1];
+      if (previous && range[0] <= previous[1]) previous[1] = Math.max(previous[1], range[1]);
+      else merged.push(range);
+    }
+    if (!merged.length) {
+      if (element.textContent !== text || element.querySelector('mark')) element.textContent = text;
+      return;
+    }
+    const fragment = document.createDocumentFragment();
+    let from = 0;
+    for (const [start, end] of merged) {
+      fragment.append(document.createTextNode(text.slice(from, start)));
+      const mark = document.createElement('mark');
+      mark.className = 'feature-match';
+      mark.textContent = text.slice(start, end);
+      fragment.append(mark);
+      from = end;
     }
     fragment.append(document.createTextNode(text.slice(from)));
     element.replaceChildren(fragment);
   }
 
-  function matchingExcerpt(row, query) {
-    if (!query || fold(row.excerptText).includes(query)) return row.excerptText;
+  function matchingExcerpt(row, tokens) {
+    if (!tokens.length) return row.excerptText;
+    const excerpt = fold(row.excerptText);
     const { normalized, starts, ends } = searchableOffsets(row.descriptionText);
-    const match = normalized.indexOf(query);
-    if (match === -1) return row.excerptText;
-    const hitStart = starts[match], hitEnd = ends[match + query.length - 1];
+    const token = tokens.find(value => !excerpt.includes(value) && normalized.includes(value));
+    if (!token) return row.excerptText;
+    const match = normalized.indexOf(token);
+    const hitStart = starts[match], hitEnd = ends[match + token.length - 1];
     let start = Math.max(0, hitStart - 65);
     let end = Math.min(row.descriptionText.length, Math.max(start + 190, hitEnd + 55));
     if (start > 0) {
@@ -122,54 +136,127 @@ if (featureCatalog) {
       (end < row.descriptionText.length ? '…' : '');
   }
 
+  function pageNumbers(pageCount) {
+    if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
+    let first = Math.max(2, currentPage - 1);
+    let last = Math.min(pageCount - 1, currentPage + 1);
+    if (currentPage <= 3) { first = 2; last = 4; }
+    if (currentPage >= pageCount - 2) { first = pageCount - 3; last = pageCount - 1; }
+    return [1, ...Array.from({ length: last - first + 1 }, (_, index) => first + index), pageCount];
+  }
+
+  function pageButton(label, page, pageCount, { direction = false, disabled = false } = {}) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    button.dataset.featurePage = String(page);
+    button.disabled = disabled;
+    if (direction) {
+      button.className = 'feature-page-direction';
+      button.setAttribute('aria-label', label === 'Anterior' ? 'Ir a la página anterior' : 'Ir a la página siguiente');
+    } else {
+      button.setAttribute('aria-label', 'Página ' + page + ' de ' + pageCount);
+      if (page === currentPage) button.setAttribute('aria-current', 'page');
+    }
+    return button;
+  }
+
+  function renderPagination(total, pageCount, first, last) {
+    for (const navigation of pagination) {
+      navigation.element.hidden = total <= pageSize;
+      navigation.info.textContent = total ? 'Página ' + currentPage + ' de ' + pageCount +
+        ' · Mostrando ' + first + '–' + last + ' de ' + total : '';
+      if (navigation.element.hidden) {
+        navigation.controls.replaceChildren();
+        continue;
+      }
+      const fragment = document.createDocumentFragment();
+      fragment.append(pageButton('Anterior', currentPage - 1, pageCount, {
+        direction: true, disabled: currentPage === 1
+      }));
+      let previous = 0;
+      for (const page of pageNumbers(pageCount)) {
+        if (previous && page - previous > 1) {
+          const ellipsis = document.createElement('span');
+          ellipsis.className = 'feature-page-ellipsis';
+          ellipsis.textContent = '…';
+          ellipsis.setAttribute('aria-hidden', 'true');
+          fragment.append(ellipsis);
+        }
+        fragment.append(pageButton(String(page), page, pageCount));
+        previous = page;
+      }
+      fragment.append(pageButton('Siguiente', currentPage + 1, pageCount, {
+        direction: true, disabled: currentPage === pageCount
+      }));
+      navigation.controls.replaceChildren(fragment);
+    }
+  }
+
   function renderFeatures() {
     const query = fold(featureInput.value);
-    let visibleCount = 0;
-    featureCatalog.classList.toggle('catalog-search', Boolean(query));
-    featureCatalog.classList.toggle('catalog-all', !query && selectedCategory === 'all');
+    const tokens = [...new Set(query.split(/\s+/).filter(Boolean))];
+    const filteredRows = categories.flatMap(category => {
+      const visible = tokens.length || selectedCategory === 'all' || selectedCategory === category.id;
+      return visible ? category.rows.filter(row => tokens.every(token => row.searchText.includes(token))) : [];
+    });
+    const total = filteredRows.length;
+    const pageCount = Math.max(1, Math.ceil(total / pageSize));
+    currentPage = Math.max(1, Math.min(currentPage, pageCount));
+    const offset = (currentPage - 1) * pageSize;
+    const visibleRows = new Set(filteredRows.slice(offset, offset + pageSize));
+    const first = total ? offset + 1 : 0;
+    const last = Math.min(offset + pageSize, total);
+    featureCatalog.classList.toggle('catalog-search', Boolean(tokens.length));
+    featureCatalog.classList.toggle('catalog-all', !tokens.length && selectedCategory === 'all');
     featureCatalog.dataset.activeCategory = selectedCategory;
     for (const category of categories) {
       let hits = 0;
-      const categoryVisible = query || selectedCategory === 'all' || selectedCategory === category.id;
       for (const row of category.rows) {
-        const visible = Boolean(categoryVisible && (!query || row.searchText.includes(query)));
+        const visible = visibleRows.has(row);
         row.element.hidden = !visible;
-        if (visible) hits++;
-        row.badge.hidden = !query;
-        paintMatches(row.title, row.titleText, query);
-        paintMatches(row.excerpt, matchingExcerpt(row, query), query);
-        paintMatches(row.description, row.descriptionText, query);
+        if (row.badge) row.badge.hidden = !tokens.length;
+        if (visible) {
+          hits++;
+          paintMatches(row.title, row.titleText, tokens);
+          paintMatches(row.excerpt, matchingExcerpt(row, tokens), tokens);
+          paintMatches(row.badge, row.categoryText, tokens);
+        }
       }
       category.element.hidden = hits === 0;
-      if (category.heading) category.heading.hidden = Boolean(query) || selectedCategory !== 'all';
-      visibleCount += hits;
+      if (category.heading) category.heading.hidden = hits === 0 || Boolean(tokens.length) || selectedCategory !== 'all';
     }
     for (const link of categoryLinks) {
-      const active = !query && link.dataset.categoryTarget === selectedCategory;
+      const active = !tokens.length && link.dataset.categoryTarget === selectedCategory;
       link.classList.toggle('is-active', active);
       if (active) link.setAttribute('aria-current', 'true');
       else link.removeAttribute('aria-current');
     }
-    featureSelect.value = query ? 'all' : selectedCategory;
-    featureReset.hidden = !query;
-    featureEmpty.hidden = visibleCount !== 0;
-    if (query) {
+    featureSelect.value = tokens.length ? 'all' : selectedCategory;
+    featureReset.hidden = !tokens.length;
+    featureEmpty.hidden = total !== 0;
+    const range = total ? 'Mostrando ' + first + '–' + last + ' de ' : '';
+    let countText;
+    if (tokens.length) {
       featurePanelTitle.textContent = 'Resultados de búsqueda';
-      featureCount.textContent = visibleCount + (visibleCount === 1 ? ' resultado' : ' resultados') +
+      countText = range + total + (total === 1 ? ' resultado' : ' resultados') +
         ' para “' + featureInput.value.trim() + '” en todas las categorías';
     } else {
       const categoryName = selectedCategory === 'all' ? 'Todas las categorías' : categoryById.get(selectedCategory).name;
       featurePanelTitle.textContent = categoryName;
-      featureCount.textContent = visibleCount + (visibleCount === 1 ? ' característica' : ' características') +
+      countText = range + total + (total === 1 ? ' característica' : ' características') +
         (selectedCategory === 'all' ? ' en todas las categorías' : ' en ' + categoryName);
     }
+    // Only this status announces changes; both pagination summaries remain ordinary text.
+    if (featureCount.textContent !== countText) featureCount.textContent = countText;
+    renderPagination(total, pageCount, first, last);
   }
 
   function scrollToCatalogTarget(target, focus) {
     requestAnimationFrame(() => {
       target.scrollIntoView({ block: 'start', behavior: 'instant' });
       if (focus) {
-        if (!target.matches('summary')) target.setAttribute('tabindex', '-1');
+        target.setAttribute('tabindex', '-1');
         target.focus({ preventScroll: true });
       }
     });
@@ -186,14 +273,16 @@ if (featureCatalog) {
     if (match) {
       selectedCategory = match.category.id;
       featureInput.value = '';
+      currentPage = Math.floor(match.category.rows.indexOf(match.row) / pageSize) + 1;
       renderFeatures();
-      match.row.element.open = true;
-      if (scroll) scrollToCatalogTarget(match.row.element.querySelector('summary'), focus);
+      match.row.element.setAttribute('tabindex', '-1');
+      if (scroll) scrollToCatalogTarget(match.row.element, focus);
       return true;
     }
     if (id === 'caracteristicas' || categoryById.has(id)) {
       selectedCategory = id === 'caracteristicas' ? 'all' : id;
       featureInput.value = '';
+      currentPage = 1;
       renderFeatures();
       if (scroll) scrollToCatalogTarget(id === 'caracteristicas' ? featureCatalog : featurePanelTitle, focus);
       return true;
@@ -208,15 +297,29 @@ if (featureCatalog) {
   }
 
   featureCatalog.classList.add('catalog-enhanced');
-  featureInput.addEventListener('input', renderFeatures);
+  featureCount.setAttribute('aria-atomic', 'true');
+  featureInput.addEventListener('input', () => {
+    currentPage = 1;
+    renderFeatures();
+  });
   featureReset.addEventListener('click', () => {
     featureInput.value = '';
+    currentPage = 1;
     renderFeatures();
     featureInput.focus();
   });
   featureSelect.addEventListener('change', () => {
     navigateCatalog(featureSelect.value === 'all' ? 'caracteristicas' : featureSelect.value, { focus: false, scroll: false });
   });
+  for (const navigation of pagination) {
+    navigation.controls.addEventListener('click', event => {
+      const button = event.target.closest('button[data-feature-page]');
+      if (!button || button.disabled || !navigation.controls.contains(button)) return;
+      currentPage = Number(button.dataset.featurePage);
+      renderFeatures();
+      scrollToCatalogTarget(featurePanelTitle, true);
+    });
+  }
   document.addEventListener('click', event => {
     if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     const anchor = event.target.closest('a[href]');
@@ -234,11 +337,12 @@ if (featureCatalog) {
     if (!readHash()) {
       selectedCategory = initialCategory;
       featureInput.value = '';
+      currentPage = 1;
       renderFeatures();
-    } else applyCatalogHash();
+    } else applyCatalogHash({ focus: true });
   });
   renderFeatures();
-  applyCatalogHash();
+  applyCatalogHash({ focus: true });
 }
 const galleryInput=document.querySelector('#gallerySearch');
 if(galleryInput){const cards=[...document.querySelectorAll('#resourceGallery .media-card')];galleryInput.addEventListener('input',()=>{const q=fold(galleryInput.value);let count=0;cards.forEach(card=>{card.hidden=!!q&&!fold(card.dataset.search||card.textContent).includes(q);if(!card.hidden)count++});document.querySelector('#galleryCount').textContent=count+' imágenes';document.querySelector('#galleryEmpty').hidden=count!==0});}
