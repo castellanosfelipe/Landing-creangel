@@ -62,7 +62,7 @@ function enablePageNavigation() {
     const anchor = event.target.closest('a[href]');
     if (!anchor || anchor.hasAttribute('download') || (anchor.target && anchor.target !== '_self')) return;
     let destination;
-    try { destination = new URL(anchor.href, location.href); }
+    try { destination = new URL(anchor.getAttribute('href'), location.href); }
     catch { return; }
     if (destination.origin !== location.origin || destination.pathname !== location.pathname || destination.search !== location.search || !destination.hash) return;
     let id;
@@ -399,7 +399,7 @@ if (featureCatalog) {
     if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     const anchor = event.target.closest('a[href]');
     if (!anchor || anchor.target === '_blank' || anchor.hasAttribute('download')) return;
-    const destination = new URL(anchor.href, location.href);
+    const destination = new URL(anchor.getAttribute('href'), location.href);
     if (destination.origin !== location.origin || destination.pathname !== location.pathname || destination.search !== location.search) return;
     let id;
     try { id = decodeURIComponent(destination.hash.slice(1)); }
