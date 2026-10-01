@@ -747,7 +747,7 @@ figure.product-wheel {
 .product-wheel-label svg { fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .product-wheel-label text { text-anchor:middle; }
 .product-wheel-current-mark { fill:none; stroke:currentColor; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
-.product-wheel-current-mark text { fill:currentColor; stroke:none; font-size:20px; font-weight:600; }
+.product-wheel-current-mark text { fill:currentColor; stroke:none; font-size:18px; font-weight:500; }
 .product-wheel-orbit {
   fill:none;
   stroke:#b7d2e7;
@@ -758,6 +758,8 @@ figure.product-wheel {
   color:#17394f;
   text-decoration:none;
   cursor:pointer;
+  outline:none;
+  box-shadow:none;
 }
 .product-wheel-slice {
   fill:#f3f5f7;
@@ -771,11 +773,12 @@ figure.product-wheel {
 }
 .product-wheel-label text {
   fill:currentColor;
-  font-size:28px;
-  font-weight:650;
+  font-size:24px;
+  font-weight:600;
   line-height:1.2;
   letter-spacing:0;
 }
+.product-wheel-sector[data-wheel-product="ifindit-clasificador-pqrs"] .product-wheel-label text { font-size:22px; }
 .product-wheel-sector:hover .product-wheel-slice {
   fill:#e7eef4;
   stroke:#a4bdd0;
@@ -792,7 +795,9 @@ figure.product-wheel {
   fill:#083e6c;
   stroke:#083e6c;
 }
-.product-wheel-sector:focus-visible { outline:none; box-shadow:none; }
+.product-wheel-sector:focus,
+.product-wheel-sector:focus-visible,
+.product-wheel-diagram:focus { outline:none; box-shadow:none; }
 .product-wheel-sector:focus-visible .product-wheel-slice {
   stroke:#0b4b82;
   stroke-width:4;
