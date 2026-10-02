@@ -815,10 +815,6 @@ figure.product-wheel {
   letter-spacing:0;
 }
 .product-wheel-sector[data-wheel-product="ifindit-clasificador-pqrs"] .product-wheel-label text { font-size:22px; }
-.product-wheel-sector:hover .product-wheel-slice {
-  fill:#e7eef4;
-  stroke:#a4bdd0;
-}
 .product-wheel-sector.is-current,
 .product-wheel-sector[aria-current="page"] { color:white; }
 .product-wheel-sector.is-current .product-wheel-slice,
@@ -826,16 +822,25 @@ figure.product-wheel {
   fill:#0b4b82;
   stroke:#0b4b82;
 }
-.product-wheel-sector.is-current:hover .product-wheel-slice,
-.product-wheel-sector[aria-current="page"]:hover .product-wheel-slice {
-  fill:#083e6c;
-  stroke:#083e6c;
+@media (hover:hover) {
+  .product-wheel-sector:hover { color:white; }
+  .product-wheel-sector:hover .product-wheel-slice {
+    fill:#0b4b82;
+    stroke:#0b4b82;
+  }
+  .product-wheel-sector.is-current:hover .product-wheel-slice,
+  .product-wheel-sector[aria-current="page"]:hover .product-wheel-slice {
+    fill:#083e6c;
+    stroke:#083e6c;
+  }
 }
 .product-wheel-sector:focus,
 .product-wheel-sector:focus-visible,
 .product-wheel-diagram:focus { outline:none; box-shadow:none; }
+.product-wheel-sector:focus-visible { color:white; }
 .product-wheel-sector:focus-visible .product-wheel-slice {
-  stroke:#0b4b82;
+  fill:#0b4b82;
+  stroke:#ffd127;
   stroke-width:4;
 }
 .product-wheel-sector.is-current:focus-visible .product-wheel-slice,
@@ -1007,7 +1012,13 @@ figure.product-wheel {
   .product-wheel-sector[aria-current="page"] { color:HighlightText; }
   .product-wheel-sector.is-current .product-wheel-slice,
   .product-wheel-sector[aria-current="page"] .product-wheel-slice { fill:Highlight; stroke:Highlight; }
-  .product-wheel-sector:focus-visible .product-wheel-slice { stroke:Highlight; stroke-width:5; }
+  .product-wheel-sector:hover,
+  .product-wheel-sector:focus-visible { color:HighlightText; }
+  .product-wheel-sector:hover .product-wheel-slice,
+  .product-wheel-sector.is-current:hover .product-wheel-slice,
+  .product-wheel-sector[aria-current="page"]:hover .product-wheel-slice,
+  .product-wheel-sector:focus-visible .product-wheel-slice { fill:Highlight; stroke:Highlight; }
+  .product-wheel-sector:focus-visible .product-wheel-slice { stroke:CanvasText; stroke-width:5; }
   .product-wheel-sector.is-current:focus-visible .product-wheel-slice,
   .product-wheel-sector[aria-current="page"]:focus-visible .product-wheel-slice { stroke:CanvasText; stroke-width:5; }
 }
