@@ -739,23 +739,47 @@ figure.product-wheel {
 .product-wheel-dots {
   fill:none;
   stroke:#5facc4;
-  stroke-width:3;
+  stroke-width:5;
   stroke-linecap:round;
 }
-.product-wheel-brand rect { fill:#0b4b82; }
-.product-wheel-brand text { fill:white; font-size:30px; font-weight:700; text-anchor:middle; }
-.product-wheel-foundations { pointer-events:none; }
-.product-wheel-foundation circle { fill:none; stroke-width:24; }
-.product-wheel-foundation text {
-  font-size:24px;
-  font-weight:650;
-  text-anchor:middle;
-  letter-spacing:.3px;
+.product-wheel-foundation-connector { fill:none; stroke:#b7d2e7; stroke-width:2; }
+.product-wheel-foundations {
+  width:94.545%;
+  margin-inline:auto;
+  overflow:hidden;
+  border:1px solid #b7d2e7;
+  border-bottom:3px solid #0b4b82;
+  border-radius:5px;
+  background:white;
+  box-shadow:0 6px 18px rgb(11 75 130 / 8%);
+  cursor:default;
 }
-.product-wheel-foundation-lakehouse circle { stroke:#0b4b82; }
-.product-wheel-foundation-lakehouse text { fill:white; }
-.product-wheel-foundation-iam circle { stroke:#eaf1f7; }
-.product-wheel-foundation-iam text { fill:#17394f; }
+.product-wheel-foundation-title {
+  padding:10px 16px;
+  border-bottom:4px solid #ffd127;
+  background:#0b4b82;
+  color:white;
+  font-size:26px;
+  font-weight:700;
+  line-height:1.2;
+  text-align:center;
+}
+.product-wheel-foundation-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.product-wheel-foundation {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-width:0;
+  min-height:88px;
+  padding:12px;
+  color:#17394f;
+  text-align:center;
+}
+.product-wheel-foundation+.product-wheel-foundation { border-left:1px solid #b7d2e7; }
+.product-wheel-foundation svg { flex:none; fill:none; stroke:#0b4b82; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.product-wheel-foundation strong { font-size:20px; font-weight:650; line-height:1.3; }
 .product-wheel-label svg { fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .product-wheel-label text { text-anchor:middle; }
 .product-wheel-current-mark { fill:none; stroke:currentColor; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
@@ -952,6 +976,9 @@ figure.product-wheel {
   .product-wheel-layout { gap:32px; }
   .product-wheel-home .product-entry { gap:10px; }
   .product-wheel-home .product-entry h3 { font-size:18px; }
+  .product-wheel-foundation-title { font-size:24px; }
+  .product-wheel-foundation { min-height:84px; gap:6px; }
+  .product-wheel-foundation strong { font-size:18px; }
 }
 @media (max-width:899px) {
   .product-wheel-layout { grid-template-columns:1fr; gap:32px; }
@@ -968,10 +995,11 @@ figure.product-wheel {
   .product-wheel-home .product-entry h3 { font-size:18px; }
 }
 @media (forced-colors:active) {
-  .product-wheel-foundation-lakehouse circle { stroke:CanvasText; }
-  .product-wheel-foundation-lakehouse text { fill:Canvas; }
-  .product-wheel-foundation-iam circle { stroke:Canvas; }
-  .product-wheel-foundation-iam text { fill:CanvasText; }
+  .product-wheel-foundations { border-color:CanvasText; background:Canvas; box-shadow:none; }
+  .product-wheel-foundation-title { background:CanvasText; color:Canvas; border-color:CanvasText; }
+  .product-wheel-foundation { color:CanvasText; border-color:CanvasText; }
+  .product-wheel-foundation+.product-wheel-foundation { border-color:CanvasText; }
+  .product-wheel-foundation svg,.product-wheel-foundation-connector { stroke:CanvasText; }
   .product-wheel-disc,.product-wheel-rim,.product-wheel-dots { stroke:CanvasText; }
   .product-wheel-slice { fill:Canvas; stroke:CanvasText; }
   .product-wheel-sector { color:CanvasText; }
