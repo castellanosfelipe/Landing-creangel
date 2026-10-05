@@ -60,3 +60,14 @@ python3 .pages/check.py --base-url https://castellanosfelipe.github.io/Landing-c
 ```
 
 `localize.py` conserva los ejemplos de código, genera las páginas inglesas y sus diagramas traducidos, actualiza los enlaces entre idiomas y el sitemap bilingüe. La comprobación de Pages valida las 120 páginas canónicas y la correspondencia de idiomas.
+
+## Estructura depurada
+
+- `public/`: 120 páginas canónicas ES/EN y sus recursos multimedia, estilos, JavaScript, robots y sitemap.
+- `.pages/`: exportador, verificador, configuración de rutas y mantenimiento de las traducciones.
+- `.github/workflows/pages.yml`: único workflow de publicación, con Ubuntu 24.04 fijado.
+- README y configuración de Git: instrucciones y control de archivos.
+
+Las 70 redirecciones históricas se generan durante la exportación desde `.pages/config.json`. Sus HTML no se guardan duplicados en `public/`. Los 307 recursos con rutas históricas también se materializan durante la exportación. Los paquetes, informes privados, capturas de trabajo, modelos y hojas de origen quedan fuera del repositorio.
+
+Las comparaciones de un commit muestran diferencias de código. `404.html` es la página de error personalizada; su presencia no indica un fallo de publicación. Si Actions muestra “The job was not acquired by Runner of type hosted even after multiple attempts”, el trabajo no obtuvo un ejecutor y no llegó a ejecutar el sitio ni la construcción. La imagen fijada evita los avisos de migración de `ubuntu-latest`; no garantiza resolver una incidencia del servicio de GitHub.

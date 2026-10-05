@@ -32,6 +32,10 @@ def check(source, root, base_url, config):
     base_url=base_url.rstrip('/')+'/'
     base=urlsplit(base_url); parsed={};errors=[];count=0
     origin_changed=config['source_origin'].rstrip('/')+'/' != base_url
+    canonical_names={route.lstrip('/')+'index.html' if route.endswith('/') else route.lstrip('/') for route in config['routes']}
+    source_html={file.relative_to(source).as_posix() for file in source.rglob('*.html')}
+    for name in sorted(source_html-canonical_names):
+        errors.append({'code':'generated_or_unexpected_source_html','file':name})
     for file in root.rglob('*.html'):
         parsed[file]=Page(file.read_text('utf-8'))
     for file, page in parsed.items():
