@@ -526,7 +526,8 @@ for (const map of document.querySelectorAll('.capability-map[data-map-count]')) 
    and the current-page marker keep their existing behaviour. */
 for (const layout of document.querySelectorAll('.product-wheel-layout')) {
   const sectors = [...layout.querySelectorAll('.product-wheel-sector[data-wheel-product]')];
-  const rows = [...layout.querySelectorAll('.product-entry, .product-wheel-legend-item')];
+  const rowScope = layout.classList.contains('product-wheel-product-hero') ? layout.closest('main') : layout;
+  const rows = [...rowScope.querySelectorAll('.product-entry, .product-wheel-legend-item')];
   const pathFor = link => {
     try { return new URL(link.getAttribute('href'), document.baseURI).pathname.replace(/\/+$/, ''); }
     catch { return null; }
