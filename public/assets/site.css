@@ -742,10 +742,13 @@ figure.product-wheel {
   stroke-width:5;
   stroke-linecap:round;
 }
-.product-wheel-foundation-connector { fill:none; stroke:#b7d2e7; stroke-width:2; }
+.product-wheel-foundation-connector { display:none; fill:none; stroke:#b7d2e7; stroke-width:2; }
 .product-wheel-foundations {
+  position:relative;
   width:94.545%;
   margin-inline:auto;
+  /* Raise the base by 90/660 of the wheel width to meet the sector at y=570. */
+  margin-top:-13.636364%;
   overflow:hidden;
   border:1px solid #b7d2e7;
   border-bottom:3px solid #0b4b82;
