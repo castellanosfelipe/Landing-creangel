@@ -779,10 +779,19 @@ figure.product-wheel {
   padding:12px;
   color:#17394f;
   text-align:center;
+  text-decoration:none;
+  cursor:pointer;
 }
 .product-wheel-foundation+.product-wheel-foundation { border-left:1px solid #b7d2e7; }
 .product-wheel-foundation svg { flex:none; fill:none; stroke:#0b4b82; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
 .product-wheel-foundation strong { font-size:20px; font-weight:650; line-height:1.3; }
+.product-wheel-foundation:focus-visible {
+  background:#0b4b82;
+  color:white;
+  outline:3px solid #ffd127;
+  outline-offset:-3px;
+}
+.product-wheel-foundation:focus-visible svg { stroke:currentColor; }
 .product-wheel-label svg { fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .product-wheel-label text { text-anchor:middle; }
 .product-wheel-current-mark { fill:none; stroke:currentColor; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
@@ -826,6 +835,8 @@ figure.product-wheel {
   stroke:#0b4b82;
 }
 @media (hover:hover) {
+  .product-wheel-foundation:hover { background:#0b4b82; color:white; }
+  .product-wheel-foundation:hover svg { stroke:currentColor; }
   .product-wheel-sector:hover { color:white; }
   .product-wheel-sector:hover .product-wheel-slice {
     fill:#0b4b82;
@@ -1008,6 +1019,11 @@ figure.product-wheel {
   .product-wheel-foundation { color:CanvasText; border-color:CanvasText; }
   .product-wheel-foundation+.product-wheel-foundation { border-color:CanvasText; }
   .product-wheel-foundation svg,.product-wheel-foundation-connector { stroke:CanvasText; }
+  .product-wheel-foundation:hover,
+  .product-wheel-foundation:focus-visible { background:Highlight; color:HighlightText; }
+  .product-wheel-foundation:hover svg,
+  .product-wheel-foundation:focus-visible svg { stroke:currentColor; }
+  .product-wheel-foundation:focus-visible { outline-color:CanvasText; }
   .product-wheel-disc,.product-wheel-rim,.product-wheel-dots { stroke:CanvasText; }
   .product-wheel-slice { fill:Canvas; stroke:CanvasText; }
   .product-wheel-sector { color:CanvasText; }
