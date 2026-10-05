@@ -10,9 +10,14 @@ class Page(HTMLParser):
     def __init__(self, text):
         super().__init__(convert_charrefs=True)
         self.refs=[]; self.ids=set(); self.base=None; self.canonical=None
+        self.lang=None; self.alternates={}; self.languages={}; self.language_switches=0
         self.feed(text)
     def handle_starttag(self, tag, attrs):
         values=dict(attrs)
+        if tag=='html':self.lang=values.get('lang')
+        if tag=='link' and values.get('rel')=='alternate':self.alternates[values.get('hreflang')]=values.get('href')
+        if tag=='nav' and 'language-switch' in values.get('class','').split():self.language_switches+=1
+        if tag=='a' and values.get('data-language'):self.languages[values['data-language']]=values.get('href')
         if values.get('id'):self.ids.add(values['id'])
         if tag=='base':self.base=values.get('href')
         if tag=='link' and values.get('rel')=='canonical':self.canonical=values.get('href')
@@ -59,6 +64,21 @@ def check(source, root, base_url, config):
         else:preserved+=1
         if origin_changed and config['source_origin']+'/' in (root/name).read_text('utf-8').partition('</head>')[0]:
             errors.append({'code':'old_metadata_origin','file':name})
+        if config.get('localization'):
+            page=parsed[root/name]
+            english=route.startswith('/en/')
+            spanish=route.removeprefix('/en') if english else route
+            expected_lang='en' if english else 'es-CO'
+            if page.lang!=expected_lang or page.language_switches!=1 or set(page.languages)!={'es','en'}:
+                errors.append({'code':'language_controls','file':name})
+            expected_alternates={'es-CO':base_url.rstrip('/')+spanish,
+                                 'en':base_url.rstrip('/')+'/en'+spanish,
+                                 'x-default':base_url.rstrip('/')+spanish}
+            if page.alternates!=expected_alternates:errors.append({'code':'hreflang','file':name})
+            context=urljoin(base_url.rstrip('/')+route,page.base) if page.base else base_url.rstrip('/')+route
+            for code,href in page.languages.items():
+                expected=base_url.rstrip('/')+('/en'+spanish if code=='en' else spanish)
+                if urljoin(context,href)!=expected:errors.append({'code':'language_counterpart','file':name,'language':code})
     asset_count=0
     for file in source.rglob('*'):
         if file.is_file() and file.suffix not in {'.html','.xml','.txt'} and file.name!='.htaccess':
@@ -83,7 +103,8 @@ def check(source, root, base_url, config):
     report={'passed':not errors,'base_url':base_url,'html_files':len(parsed),'references_checked':count,
             'exact_bodies_preserved':preserved,'unchanged_assets':asset_count,
             'historical_media_files':len(config['redirects']['media']),
-            'historical_page_aliases':len(config['redirects']['pages']),'errors':errors}
+            'historical_page_aliases':len(config['redirects']['pages']),
+            'bilingual_pages':len(config['routes']) if config.get('localization') else 0,'errors':errors}
     return report
 
 

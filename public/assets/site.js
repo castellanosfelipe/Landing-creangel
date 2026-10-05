@@ -1,4 +1,6 @@
 'use strict';
+const siteLanguage = document.documentElement.lang.startsWith('en') ? 'en' : 'es';
+const ui = (spanish, english) => siteLanguage === 'en' ? english : spanish;
 /* Same-page links share one interruptible, accessible scroll transition. */
 const scrollMotionPreference = matchMedia('(prefers-reduced-motion: reduce)');
 let cancelPageScroll = null;
@@ -85,8 +87,8 @@ function closeMenus(){for(const [button,panel] of [[menuButton,mobileMenu],[prod
 for(const [button,panel] of [[menuButton,mobileMenu],[productButton,productMenu]])button?.addEventListener('click',()=>{const open=panel.hidden;closeMenus();panel.hidden=!open;button.setAttribute('aria-expanded',String(open));});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(productMenu&&!productMenu.hidden){closeMenus();productButton.focus()}else if(mobileMenu&&!mobileMenu.hidden){closeMenus();menuButton.focus()}}});
 document.addEventListener('click',e=>{if(!e.target.closest('.site-header'))closeMenus()});
-matchMedia('(max-width:1120px)').addEventListener('change',()=>{const inHeader=document.querySelector('.site-header')?.contains(document.activeElement);closeMenus();if(inHeader)(matchMedia('(max-width:1120px)').matches?menuButton:productButton)?.focus()});
-const fold=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').trim();
+matchMedia('(max-width:1240px)').addEventListener('change',()=>{const inHeader=document.querySelector('.site-header')?.contains(document.activeElement);closeMenus();if(inHeader)(matchMedia('(max-width:1240px)').matches?menuButton:productButton)?.focus()});
+const fold=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase(siteLanguage).trim();
 const featureCatalog = document.querySelector('.feature-catalog');
 if (featureCatalog) {
   const featureInput = featureCatalog.querySelector('#featureSearch');
@@ -139,7 +141,7 @@ if (featureCatalog) {
     let normalized = '', offset = 0;
     const starts = [], ends = [];
     for (const character of text) {
-      const part = character.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
+      const part = character.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase(siteLanguage);
       if (part) {
         normalized += part;
         for (let i = 0; i < part.length; i++) {
@@ -234,9 +236,9 @@ if (featureCatalog) {
     button.disabled = disabled;
     if (direction) {
       button.className = 'feature-page-direction';
-      button.setAttribute('aria-label', label === 'Anterior' ? 'Ir a la página anterior' : 'Ir a la página siguiente');
+      button.setAttribute('aria-label', label === ui('Anterior', 'Previous') ? ui('Ir a la página anterior', 'Go to the previous page') : ui('Ir a la página siguiente', 'Go to the next page'));
     } else {
-      button.setAttribute('aria-label', 'Página ' + page + ' de ' + pageCount);
+      button.setAttribute('aria-label', ui('Página ', 'Page ') + page + ui(' de ', ' of ') + pageCount);
       if (page === currentPage) button.setAttribute('aria-current', 'page');
     }
     return button;
@@ -245,14 +247,14 @@ if (featureCatalog) {
   function renderPagination(total, pageCount, first, last) {
     for (const navigation of pagination) {
       navigation.element.hidden = total <= pageSize;
-      navigation.info.textContent = total ? 'Página ' + currentPage + ' de ' + pageCount +
-        ' · Mostrando ' + first + '–' + last + ' de ' + total : '';
+      navigation.info.textContent = total ? ui('Página ', 'Page ') + currentPage + ui(' de ', ' of ') + pageCount +
+        ui(' · Mostrando ', ' · Showing ') + first + '–' + last + ui(' de ', ' of ') + total : '';
       if (navigation.element.hidden) {
         navigation.controls.replaceChildren();
         continue;
       }
       const fragment = document.createDocumentFragment();
-      fragment.append(pageButton('Anterior', currentPage - 1, pageCount, {
+      fragment.append(pageButton(ui('Anterior', 'Previous'), currentPage - 1, pageCount, {
         direction: true, disabled: currentPage === 1
       }));
       let previous = 0;
@@ -267,7 +269,7 @@ if (featureCatalog) {
         fragment.append(pageButton(String(page), page, pageCount));
         previous = page;
       }
-      fragment.append(pageButton('Siguiente', currentPage + 1, pageCount, {
+      fragment.append(pageButton(ui('Siguiente', 'Next'), currentPage + 1, pageCount, {
         direction: true, disabled: currentPage === pageCount
       }));
       navigation.controls.replaceChildren(fragment);
@@ -316,17 +318,17 @@ if (featureCatalog) {
     featureSelect.value = tokens.length ? 'all' : selectedCategory;
     featureReset.hidden = !tokens.length;
     featureEmpty.hidden = total !== 0;
-    const range = total ? 'Mostrando ' + first + '–' + last + ' de ' : '';
+    const range = total ? ui('Mostrando ', 'Showing ') + first + '–' + last + ui(' de ', ' of ') : '';
     let countText;
     if (tokens.length) {
-      featurePanelTitle.textContent = 'Resultados de búsqueda';
-      countText = range + total + (total === 1 ? ' resultado' : ' resultados') +
-        ' para “' + featureInput.value.trim() + '” en todas las categorías';
+      featurePanelTitle.textContent = ui('Resultados de búsqueda', 'Search results');
+      countText = range + total + (total === 1 ? ui(' resultado', ' result') : ui(' resultados', ' results')) +
+        ui(' para “', ' for “') + featureInput.value.trim() + ui('” en todas las categorías', '” across all categories');
     } else {
-      const categoryName = selectedCategory === 'all' ? 'Todas las categorías' : categoryById.get(selectedCategory).name;
+      const categoryName = selectedCategory === 'all' ? ui('Todas las categorías', 'All categories') : categoryById.get(selectedCategory).name;
       featurePanelTitle.textContent = categoryName;
-      countText = range + total + (total === 1 ? ' característica' : ' características') +
-        (selectedCategory === 'all' ? ' en todas las categorías' : ' en ' + categoryName);
+      countText = range + total + (total === 1 ? ui(' característica', ' feature') : ui(' características', ' features')) +
+        (selectedCategory === 'all' ? ui(' en todas las categorías', ' across all categories') : ui(' en ', ' in ') + categoryName);
     }
     // Only this status announces changes; both pagination summaries remain ordinary text.
     if (featureCount.textContent !== countText) featureCount.textContent = countText;
@@ -421,13 +423,13 @@ if (featureCatalog) {
 }
 enablePageNavigation();
 const galleryInput=document.querySelector('#gallerySearch');
-if(galleryInput){const cards=[...document.querySelectorAll('#resourceGallery .media-card')];galleryInput.addEventListener('input',()=>{const q=fold(galleryInput.value);let count=0;cards.forEach(card=>{card.hidden=!!q&&!fold(card.dataset.search||card.textContent).includes(q);if(!card.hidden)count++});document.querySelector('#galleryCount').textContent=count+' imágenes';document.querySelector('#galleryEmpty').hidden=count!==0});}
+if(galleryInput){const cards=[...document.querySelectorAll('#resourceGallery .media-card')];galleryInput.addEventListener('input',()=>{const q=fold(galleryInput.value);let count=0;cards.forEach(card=>{card.hidden=!!q&&!fold(card.dataset.search||card.textContent).includes(q);if(!card.hidden)count++});document.querySelector('#galleryCount').textContent=count+ui(' imágenes', ' images');document.querySelector('#galleryEmpty').hidden=count!==0});}
 let lastFocus;const zoom=document.querySelector('#imageDialog');
 document.querySelectorAll('.media-zoom').forEach(button=>button.addEventListener('click',()=>{if(!zoom)return;lastFocus=button;zoom.querySelector('h2').textContent=button.dataset.title;const img=document.createElement('img');img.src=button.dataset.src;img.alt=button.dataset.alt||button.dataset.title;zoom.querySelector('.zoom-body').replaceChildren(img);zoom.showModal()}));
 zoom?.querySelector('.zoom-close').addEventListener('click',()=>zoom.close());zoom?.addEventListener('close',()=>lastFocus?.focus());
 document.querySelectorAll('[data-youtube]').forEach(button=>button.addEventListener('click',()=>{const frame=document.createElement('iframe');frame.src='https://www.youtube-nocookie.com/embed/'+button.dataset.youtube+'?autoplay=1';frame.title=button.dataset.title;frame.allow='autoplay; encrypted-media; picture-in-picture';frame.allowFullscreen=true;frame.referrerPolicy='strict-origin-when-cross-origin';button.closest('.youtube-player').replaceChildren(frame);frame.focus()}));
 const siteSearch=document.querySelector('#siteSearch');
-if(siteSearch){const data=JSON.parse(document.querySelector('#searchIndex').textContent),list=document.querySelector('#siteResults'),count=document.querySelector('#siteResultCount');function search(){const q=fold(siteSearch.value);const matches=data.filter(p=>!q||fold(p.title+' '+p.description+' '+p.type+' '+(p.keywords||'')).includes(q));list.replaceChildren();for(const p of matches){const li=document.createElement('li'),type=document.createElement('div'),h=document.createElement('h2'),a=document.createElement('a'),d=document.createElement('p');type.className='result-type';type.textContent=p.type;a.href=p.href;a.textContent=p.title;h.append(a);d.textContent=p.description;li.append(type,h,d);list.append(li)}count.textContent=matches.length+' resultados';document.querySelector('#siteSearchEmpty').hidden=matches.length!==0;}siteSearch.addEventListener('input',search);const q=new URLSearchParams(location.search).get('q');if(q)siteSearch.value=q;search();}
+if(siteSearch){const data=JSON.parse(document.querySelector('#searchIndex').textContent),list=document.querySelector('#siteResults'),count=document.querySelector('#siteResultCount');function search(){const q=fold(siteSearch.value);const matches=data.filter(p=>!q||fold(p.title+' '+p.description+' '+p.type+' '+(p.keywords||'')).includes(q));list.replaceChildren();for(const p of matches){const li=document.createElement('li'),type=document.createElement('div'),h=document.createElement('h2'),a=document.createElement('a'),d=document.createElement('p');type.className='result-type';type.textContent=p.type;a.href=p.href;a.textContent=p.title;h.append(a);d.textContent=p.description;li.append(type,h,d);list.append(li)}count.textContent=matches.length+ui(' resultados', ' results');document.querySelector('#siteSearchEmpty').hidden=matches.length!==0;}siteSearch.addEventListener('input',search);const q=new URLSearchParams(location.search).get('q');if(q)siteSearch.value=q;search();}
 
 // Reveal only existing diagram groups. The underlying content remains visible
 // without JavaScript, while scrolling, and when reduced motion is requested.
@@ -579,3 +581,14 @@ designerCredit?.addEventListener('click', event => {
   window.open(designerCredit.href, '_blank', 'noopener,noreferrer');
   window.location.assign(designerCredit.dataset.designerSite);
 });
+
+
+// Native links work without JavaScript; preserve the current section and query when changing language.
+for (const languageLink of document.querySelectorAll('.language-switch a[data-language]')) {
+  languageLink.addEventListener('click', () => {
+    const destination = new URL(languageLink.href);
+    destination.search = location.search;
+    destination.hash = location.hash;
+    languageLink.href = destination.href;
+  });
+}

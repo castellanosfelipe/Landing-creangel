@@ -1083,3 +1083,24 @@ figure.product-wheel {
   .product-wheel-related-products .product-wheel-legend { grid-template-columns:1fr; }
 }
 /* Product hero wheel:end */
+
+
+/* Language selection stays visible outside the collapsed navigation. */
+.language-switch { display:flex; align-items:center; flex:0 0 auto; gap:2px; border:1px solid var(--line); border-radius:6px; padding:2px; }
+.language-switch a { display:inline-flex; align-items:center; justify-content:center; min-width:36px; min-height:40px; padding:0 6px; border-radius:4px; text-decoration:none; color:var(--ink); font-size:13px; font-weight:600; }
+.language-switch span { color:var(--muted); font-size:12px; }
+.language-switch a[aria-current="page"],.language-switch a:hover { color:white; background:var(--blue); }
+.language-switch a:focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
+.navrow .mobile-toggle { margin-left:0; flex-shrink:0; }
+@media(max-width:1240px) {
+  .desktop-nav,.header-cta { display:none; }
+  .mobile-toggle { display:block; }
+  .language-switch { margin-left:auto; }
+}
+@media(max-width:430px) {
+  .navrow { gap:10px; }
+  .navrow .brand { flex-basis:126px; }
+  .navrow .brand img { width:126px; }
+  .language-switch a { min-width:32px; padding:0 4px; }
+  .navrow .mobile-toggle { width:44px; height:44px; }
+}

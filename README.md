@@ -1,6 +1,6 @@
 # Creangel · GitHub Pages
 
-Sitio completo de Creangel, con 60 páginas, cinco productos IFINDIT, 1.222 características públicas, 10 casos, 18 artículos y la multimedia publicada. Mantiene el formulario Jira y las tablas de Colombia Compra Eficiente. El diseño y el contenido coinciden con la entrega de producción.
+Sitio completo de Creangel, con 60 páginas en español y sus 60 versiones en inglés, cinco productos IFINDIT, 1.222 características públicas, 10 casos, 18 artículos y la multimedia publicada. Mantiene el formulario Jira y las tablas de Colombia Compra Eficiente. El diseño y el contenido coinciden con la entrega de producción.
 
 Repositorio: https://github.com/castellanosfelipe/Landing-creangel
 
@@ -41,6 +41,22 @@ El exportador requiere una carpeta de salida vacía para evitar contenido residu
 
 ## Contenido editable
 
-Los HTML, CSS, JavaScript, documentos e imágenes están en `public/`. Los cambios del sitio se hacen allí y se publican mediante el workflow. Los scripts de `.pages/` adaptan únicamente metadatos, políticas compatibles con Pages y rutas históricas; conservan el cuerpo visible de las 60 páginas y los bytes de los activos.
+Los HTML, CSS, JavaScript, documentos e imágenes están en `public/`. Los cambios del sitio se hacen allí y se publican mediante el workflow. Los scripts de `.pages/` adaptan únicamente metadatos, políticas compatibles con Pages y rutas históricas; conservan el cuerpo visible de las 120 páginas y los bytes de los activos.
 
 Referencias oficiales: [workflows para Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), [404 personalizado](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site), [límites de Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits).
+
+## Idiomas ES/EN
+
+El selector ES/EN de la barra superior abre la misma página en el idioma elegido. El español conserva sus rutas; el inglés utiliza `/en/` delante de ellas. Los enlaces internos, diagramas, buscadores, paginación, textos accesibles y metadatos tienen versión inglesa. La navegación conserva el idioma, y el selector conserva los parámetros de búsqueda y el fragmento cuando JavaScript está disponible. Los enlaces del selector también funcionan sin JavaScript.
+
+Los archivos multimedia se comparten entre idiomas. Los documentos descargables, el texto dentro de las imágenes y la interfaz externa de Jira conservan su idioma original. Los números de parte, límites de licencias, datos de contacto e identificadores se conservan.
+
+Las traducciones se guardan en `.pages/i18n/en.json`; no hay dependencia de servicios de traducción durante las visitas. Para actualizar contenido, editar el HTML español y añadir o revisar su traducción en ese catálogo. Regenerar antes de exportar:
+
+```sh
+python3 .pages/localize.py
+python3 .pages/export.py --base-url https://castellanosfelipe.github.io/Landing-creangel/
+python3 .pages/check.py --base-url https://castellanosfelipe.github.io/Landing-creangel/
+```
+
+`localize.py` conserva los ejemplos de código, genera las páginas inglesas y sus diagramas traducidos, actualiza los enlaces entre idiomas y el sitemap bilingüe. La comprobación de Pages valida las 120 páginas canónicas y la correspondencia de idiomas.

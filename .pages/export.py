@@ -20,7 +20,7 @@ def target(root, route):
 
 def write(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding='utf-8')
+    path.write_text(text, encoding='utf-8', newline='\n')
 
 
 def public_url(base, route):
@@ -64,7 +64,7 @@ def export(source, output, base_url, config):
         head = head.replace(origin + '/', base_url + '/')
         head = head.replace('<base href="/">', '<base href="' + html.escape(base_path, quote=True) + '">')
         relative = file.relative_to(output).as_posix()
-        policy = config['jira_csp'] if relative == 'soporte/index.html' else config['site_csp']
+        policy = config['jira_csp'] if relative in ('soporte/index.html','en/soporte/index.html') else config['site_csp']
         security = '<meta http-equiv="Content-Security-Policy" content="' + html.escape(meta_policy(policy), quote=True) + '"><meta name="referrer" content="strict-origin-when-cross-origin">'
         head = head.replace('<meta charset="utf-8">', '<meta charset="utf-8">' + security, 1)
         write(file, head + boundary + body)
