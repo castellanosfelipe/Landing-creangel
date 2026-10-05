@@ -20,7 +20,7 @@ jobs:
       pages: write
       id-token: write
     environment:
-      name: github-pages
+      name: github-pages-production
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Obtener sitio

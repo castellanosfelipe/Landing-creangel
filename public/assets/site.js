@@ -570,3 +570,9 @@ for (const layout of document.querySelectorAll('.product-wheel-layout')) {
     });
   }
 }
+
+// The designer credit opens the requested website alongside the native LinkedIn link.
+document.querySelector('.footer-linkedin')?.addEventListener('click', event => {
+  if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+  window.open('https://felipepena.co/', '_blank', 'noopener,noreferrer');
+});

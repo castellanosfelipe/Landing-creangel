@@ -4,6 +4,3 @@ __pycache__/
 _build-report.json
 .env
 .env.*
-!.env.example
-_docker-build/
-_docker-*.json
