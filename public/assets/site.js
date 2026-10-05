@@ -571,8 +571,11 @@ for (const layout of document.querySelectorAll('.product-wheel-layout')) {
   }
 }
 
-// The designer credit opens the requested website alongside the native LinkedIn link.
-document.querySelector('.footer-linkedin')?.addEventListener('click', event => {
+// A single new tab respects popup limits while opening both designer destinations.
+const designerCredit = document.querySelector('.footer-linkedin');
+designerCredit?.addEventListener('click', event => {
   if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-  window.open('https://felipepena.co/', '_blank', 'noopener,noreferrer');
+  event.preventDefault();
+  window.open(designerCredit.href, '_blank', 'noopener,noreferrer');
+  window.location.assign(designerCredit.dataset.designerSite);
 });
