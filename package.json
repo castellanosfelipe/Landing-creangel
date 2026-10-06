@@ -1,0 +1,12 @@
+{
+  "name": "creangel-portal",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "build:production": "node ops/build.mjs",
+    "test": "node --test ops/auth/test/*.test.mjs ops/publisher/test/*.test.mjs",
+    "setup:secrets": "node ops/setup-secrets.mjs"
+  },
+  "dependencies": { "decap-cms": "3.16.3" }
+}

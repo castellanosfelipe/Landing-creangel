@@ -47,6 +47,9 @@ def export(source, output, base_url, config):
     for file in source.rglob('*'):
         if not file.is_file() or file.name in {'.htaccess', 'CNAME'}:
             continue
+        # Decap is generated separately with the deployment's runtime configuration.
+        if file.relative_to(source).parts[0] == 'admin':
+            continue
         if file.is_symlink():
             raise ValueError('Symlinks are not supported: ' + str(file))
         dest = output / file.relative_to(source)

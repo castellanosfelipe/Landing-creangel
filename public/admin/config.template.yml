@@ -1,0 +1,90 @@
+# Generated during deployment from public environment values. Never store OAuth secrets here.
+backend:
+  name: github
+  repo: '{{CONTENT_REPOSITORY}}'
+  branch: '{{CONTENT_BRANCH}}'
+  base_url: '{{PUBLIC_SITE_URL}}'
+  auth_endpoint: auth/auth
+  squash_merges: true
+
+publish_mode: editorial_workflow
+site_url: '{{PUBLIC_SITE_URL}}'
+display_url: '{{PUBLIC_SITE_URL}}/documentacion/'
+logo_url: '{{PUBLIC_SITE_URL}}/assets/logo-creangel.png'
+locale: es
+media_folder: public/multimedia/documentacion
+public_folder: /multimedia/documentacion
+
+collections:
+  - name: documentation_es
+    label: Documentación · Español
+    label_singular: Documento en español
+    description: Contenido público de IFINDIT en español. Guarde el borrador y publíquelo cuando esté listo.
+    folder: documentation/docs
+    create: true
+    delete: false
+    extension: md
+    format: frontmatter
+    slug: '{{fields.id}}'
+    identifier_field: id
+    summary: '{{title}}'
+    fields:
+      - label: Identificador permanente
+        name: id
+        widget: string
+        required: true
+        hint: Define el nombre del archivo y debe coincidir en español e inglés. No cambie el identificador de un documento existente.
+        pattern:
+          - '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+          - 'Use letras minúsculas sin acentos, números y guiones; conserve el identificador existente.'
+      - {label: Título, name: title, widget: string}
+      - {label: Descripción, name: description, widget: text}
+      - {label: Orden en el menú, name: sidebar_position, widget: number, value_type: int, min: 1, default: 20}
+      - label: Ruta del documento
+        name: slug
+        widget: string
+        hint: Use / para la introducción o una ruta como /productos/ifindit-search. Conserve la ruta de los documentos existentes.
+        pattern:
+          - '^/(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*)?$'
+          - 'Use una ruta con letras minúsculas sin acentos, números, guiones y barras.'
+      - label: Contenido
+        name: body
+        widget: markdown
+        modes: [rich_text, raw]
+        editor_components: [image, code-block]
+  - name: documentation_en
+    label: Documentation · English
+    label_singular: English document
+    description: Public IFINDIT documentation in English. Save a draft and publish when ready.
+    folder: documentation/i18n/en/docusaurus-plugin-content-docs/current
+    create: true
+    delete: false
+    extension: md
+    format: frontmatter
+    slug: '{{fields.id}}'
+    identifier_field: id
+    summary: '{{title}}'
+    fields:
+      - label: Permanent identifier
+        name: id
+        widget: string
+        required: true
+        hint: Determines the filename and must match the Spanish document. Do not change an existing document's identifier.
+        pattern:
+          - '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+          - 'Use lowercase unaccented letters, numbers and hyphens; keep existing identifiers unchanged.'
+      - {label: Title, name: title, widget: string}
+      - {label: Description, name: description, widget: text}
+      - {label: Menu order, name: sidebar_position, widget: number, value_type: int, min: 1, default: 20}
+      - label: Document route
+        name: slug
+        widget: string
+        hint: Use / for the introduction. Keep the same filename and route as the corresponding Spanish document.
+        pattern:
+          - '^/(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*)?$'
+          - 'Use lowercase unaccented letters, numbers, hyphens and slashes.'
+      - label: Content
+        name: body
+        widget: markdown
+        modes: [rich_text, raw]
+        editor_components: [image, code-block]

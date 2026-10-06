@@ -1,0 +1,14 @@
+.git
+node_modules
+**/node_modules
+documentation/build
+documentation/.docusaurus
+_site*
+secrets
+.env
+.env.*
+*.zip
+*.log
+ops/test
+ops/auth/test
+ops/publisher/test

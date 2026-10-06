@@ -1,0 +1,60 @@
+:root {
+  --ifm-color-primary: #12518e;
+  --ifm-color-primary-dark: #104980;
+  --ifm-color-primary-darker: #0f4579;
+  --ifm-color-primary-darkest: #0d3963;
+  --ifm-color-primary-light: #14599c;
+  --ifm-color-primary-lighter: #155da3;
+  --ifm-color-primary-lightest: #1769b9;
+  --ifm-font-family-base: 'Segoe UI', Arial, sans-serif;
+  --ifm-font-color-base: #47586a;
+  --ifm-heading-color: #123449;
+  --ifm-background-color: #fff;
+  --ifm-background-surface-color: #f3f6f9;
+  --ifm-navbar-background-color: #fff;
+  --ifm-navbar-shadow: 0 1px 0 #d7e0e8;
+  --ifm-footer-background-color: #f3f6f9;
+  --ifm-footer-color: #47586a;
+  --ifm-footer-link-color: #12518e;
+  --ifm-global-radius: 4px;
+  --ifm-code-font-size: 93%;
+  --ifm-line-height-base: 1.65;
+  --ifm-navbar-height: 5rem;
+  --ifm-menu-color: #123449;
+  --ifm-menu-color-active: #12518e;
+  --ifm-menu-color-background-active: #edf3f8;
+  --ifm-table-border-color: #d7e0e8;
+}
+.navbar__logo {height: 2.5rem; max-width: 11rem;}
+.navbar__logo img {object-fit: contain;}
+.navbar__title {border-left: 1px solid #d7e0e8; padding-left: 1rem; font-size: .95rem; font-weight: 600;}
+.navbar__brand {gap: 1rem;}
+.theme-doc-markdown h1 {font-size: clamp(2rem, 4vw, 2.8rem); line-height: 1.2;}
+.theme-doc-markdown h2 {margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid #d7e0e8;}
+.theme-doc-markdown a {text-underline-offset: .2em;}
+.theme-doc-markdown a:hover {text-decoration-thickness: 2px;}
+.theme-doc-markdown img {height: auto; max-width: 100%; border-radius: 4px;}
+.theme-doc-sidebar-container {border-right-color: #d7e0e8;}
+.menu__link {border-radius: 4px; padding: .6rem .8rem;}
+.pagination-nav__link {border-color: #d7e0e8; border-radius: 4px;}
+.pagination-nav__link:hover {border-color: #12518e; background: #f3f6f9;}
+.footer {border-top: 3px solid #fbd327;}
+.footer__title {color: #123449;}
+.table-of-contents {border-left-color: #d7e0e8;}
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible {
+  outline: 3px solid #12518e; outline-offset: 3px;
+}
+@media (max-width: 996px) {
+  .navbar__title {font-size: .85rem; padding-left: .65rem;}
+  .navbar__brand {gap: .6rem;}
+  .navbar__logo {height: 2rem; max-width: 8.5rem;}
+}
+@media (max-width: 420px) {
+  .navbar__title {display: none;}
+  .theme-doc-markdown h1 {overflow-wrap: anywhere;}
+  .theme-doc-markdown table {font-size: .9rem;}
+}
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {scroll-behavior: auto;}
+  *, *::before, *::after {animation-duration: .01ms !important; transition-duration: .01ms !important;}
+}

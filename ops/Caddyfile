@@ -1,0 +1,28 @@
+{
+    email {$ACME_EMAIL}
+    admin off
+    log default {
+        format filter {
+            wrap json
+            request>uri delete
+            request>headers>Cookie delete
+            request>headers>Authorization delete
+        }
+    }
+}
+{$SITE_DOMAIN} {
+    encode zstd gzip
+    header Strict-Transport-Security "max-age=31536000"
+    handle /auth/* {
+        reverse_proxy auth:3000
+    }
+    handle /publish/webhook {
+        reverse_proxy publisher:3001
+    }
+    handle /publish/* {
+        respond "Not found" 404
+    }
+    handle {
+        reverse_proxy web:8080
+    }
+}

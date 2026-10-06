@@ -1,0 +1,17 @@
+{
+  "title": {
+    "message": "Documentation"
+  },
+  "logo.alt": {
+    "message": "Creangel"
+  },
+  "item.label.IFINDIT": {
+    "message": "IFINDIT"
+  },
+  "item.label.Sitio web": {
+    "message": "Website"
+  },
+  "item.label.Soporte": {
+    "message": "Support"
+  }
+}

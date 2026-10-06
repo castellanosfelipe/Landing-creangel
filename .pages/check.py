@@ -33,7 +33,7 @@ def check(source, root, base_url, config):
     base=urlsplit(base_url); parsed={};errors=[];count=0
     origin_changed=config['source_origin'].rstrip('/')+'/' != base_url
     canonical_names={route.lstrip('/')+'index.html' if route.endswith('/') else route.lstrip('/') for route in config['routes']}
-    source_html={file.relative_to(source).as_posix() for file in source.rglob('*.html')}
+    source_html={file.relative_to(source).as_posix() for file in source.rglob('*.html') if file.relative_to(source).parts[0]!='admin'}
     for name in sorted(source_html-canonical_names):
         errors.append({'code':'generated_or_unexpected_source_html','file':name})
     for file in root.rglob('*.html'):
@@ -85,6 +85,7 @@ def check(source, root, base_url, config):
                 if urljoin(context,href)!=expected:errors.append({'code':'language_counterpart','file':name,'language':code})
     asset_count=0
     for file in source.rglob('*'):
+        if file.relative_to(source).parts[0]=='admin':continue
         if file.is_file() and file.suffix not in {'.html','.xml','.txt'} and file.name!='.htaccess':
             copy=root/file.relative_to(source)
             if not copy.exists() or file.read_bytes()!=copy.read_bytes():

@@ -1,0 +1,99 @@
+name: creangel-portal
+services:
+  seed:
+    build:
+      context: .
+      target: site-seed
+      args:
+        PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-https://portal.creangel.com}
+        CONTENT_REPOSITORY: ${CONTENT_REPOSITORY:-castellanosfelipe/Landing-creangel}
+        CONTENT_BRANCH: ${CONTENT_BRANCH:-main}
+    volumes:
+      - releases:/srv/releases
+    restart: "no"
+    network_mode: none
+  web:
+    build:
+      context: .
+      target: web
+    volumes:
+      - releases:/srv/releases:ro
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      auth:
+        condition: service_healthy
+      publisher:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [internal]
+  auth:
+    build:
+      context: .
+      dockerfile: ops/auth/Dockerfile
+    environment:
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-https://portal.creangel.com}
+      CONTENT_REPOSITORY: ${CONTENT_REPOSITORY:-castellanosfelipe/Landing-creangel}
+      CMS_ALLOWED_USERS: ${CMS_ALLOWED_USERS:-castellanosfelipe}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:?Set GITHUB_CLIENT_ID in .env}
+      GITHUB_CLIENT_SECRET_FILE: /run/secrets/github_client_secret
+    secrets: [github_client_secret]
+    restart: unless-stopped
+    networks: [internal, outbound]
+  publisher:
+    build:
+      context: .
+      dockerfile: ops/publisher/Dockerfile
+    environment:
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-https://portal.creangel.com}
+      CONTENT_REPOSITORY: ${CONTENT_REPOSITORY:-castellanosfelipe/Landing-creangel}
+      CONTENT_BRANCH: ${CONTENT_BRANCH:-main}
+      GITHUB_WEBHOOK_SECRET_FILE: /run/secrets/github_webhook_secret
+      GITHUB_READ_TOKEN_FILE: /run/secrets/github_read_token
+    secrets: [github_webhook_secret, github_read_token]
+    volumes:
+      - releases:/srv/releases
+      - publisher_state:/var/lib/publisher
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    stop_grace_period: 25m
+    networks: [internal, outbound]
+  proxy:
+    image: caddy:2.10-alpine
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:-portal.creangel.com}
+      ACME_EMAIL: ${ACME_EMAIL:-soluciones@creangel.com}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./ops/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+      publisher:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [internal, outbound]
+secrets:
+  github_client_secret:
+    file: ./secrets/github-client-secret
+  github_webhook_secret:
+    file: ./secrets/github-webhook-secret
+  github_read_token:
+    file: ./secrets/github-read-token
+volumes:
+  releases:
+  publisher_state:
+  caddy_data:
+  caddy_config:
+networks:
+  internal:
+    internal: true
+  outbound:

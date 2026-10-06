@@ -1,0 +1,29 @@
+{
+  "link.title.Creangel": {
+    "message": "Creangel"
+  },
+  "link.title.Recursos": {
+    "message": "Resources"
+  },
+  "link.title.Contacto": {
+    "message": "Contact"
+  },
+  "link.item.label.Plataforma IFINDIT": {
+    "message": "IFINDIT platform"
+  },
+  "link.item.label.Productos": {
+    "message": "Products"
+  },
+  "link.item.label.Documentos": {
+    "message": "Documents"
+  },
+  "link.item.label.Multimedia": {
+    "message": "Multimedia"
+  },
+  "link.item.label.Centro de soporte": {
+    "message": "Support center"
+  },
+  "link.item.label.Solicitar demostración": {
+    "message": "Request a demonstration"
+  }
+}

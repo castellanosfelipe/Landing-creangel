@@ -1,0 +1,8 @@
+html, body {margin: 0; min-height: 100%; background: #f3f6f9; color: #123449; font-family: 'Segoe UI', Arial, sans-serif;}
+.admin-loading {width: min(460px, calc(100% - 48px)); margin: 12vh auto; padding: 40px 24px; border-top: 4px solid #fbd327; border-radius: 4px; background: #fff; box-shadow: 0 10px 30px #12344910; text-align: center;}
+.admin-loading img {max-width: 100%; height: auto;}
+.admin-loading h1 {font-size: clamp(24px, 5vw, 32px); line-height: 1.2; margin: 32px 0 12px;}
+.admin-loading p {line-height: 1.6; color: #47586a;}
+.admin-loading a {color: #12518e; text-underline-offset: 4px;}
+.admin-noscript {padding: 24px; text-align: center;}
+a:focus-visible, button:focus-visible, input:focus-visible {outline: 3px solid #12518e; outline-offset: 3px;}

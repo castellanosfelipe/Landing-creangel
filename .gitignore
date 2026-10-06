@@ -4,6 +4,12 @@ __pycache__/
 _build-report.json
 .env
 .env.*
+!.env.example
+node_modules/
+documentation/build/
+documentation/.docusaurus/
+secrets/
+_site-*/
 
 # Private working files and delivery archives do not belong in the website repository.
 /work/

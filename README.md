@@ -1,73 +1,125 @@
-# Creangel · GitHub Pages
+# Creangel · Docusaurus, Decap CMS y Docker Compose
 
-Sitio completo de Creangel, con 60 páginas en español y sus 60 versiones en inglés, cinco productos IFINDIT, 1.222 características públicas, 10 casos, 18 artículos y la multimedia publicada. Mantiene el formulario Jira y las tablas de Colombia Compra Eficiente. El diseño y el contenido coinciden con la entrega de producción.
+Portal bilingüe y documentación editable de IFINDIT, preparado para `https://portal.creangel.com`. GitHub almacena el contenido; construcción y publicación se ejecutan en el servidor propio. No hay workflows de GitHub Actions.
 
-Repositorio: https://github.com/castellanosfelipe/Landing-creangel
+Se conservan las 120 páginas ES/EN, cinco productos, LakeHouse, Auth IAM, 1.222 características, diez casos, dieciocho artículos, multimedia, Jira y tablas de Colombia Compra Eficiente. Docusaurus añade ocho documentos en español y sus ocho versiones en inglés basados en el contenido existente. El CMS administra esta documentación y sus imágenes. El diseño comercial y sus diagramas se mantienen en código.
 
-URL prevista una vez publicado: https://castellanosfelipe.github.io/Landing-creangel/
+## Direcciones
 
-## Publicación en GitHub Pages
+| Dirección | Función |
+|---|---|
+| `/` y `/en/` | Portal comercial |
+| `/documentacion/` | Documentación en español |
+| `/documentacion/en/` | Documentación en inglés |
+| `/admin/` | Decap CMS para editores autorizados |
+| `/auth/callback` | Retorno OAuth GitHub |
+| `/publish/webhook` | Notificaciones GitHub firmadas |
 
-1. Subir el contenido del paquete a la raíz de este repositorio, incluidas las carpetas `.github/` y `.pages/`, y la carpeta `public/` completa. No subir el paquete de hosting anterior, el Excel privado ni la documentación interna.
-2. En **Settings → Pages → Build and deployment → Source**, seleccionar **GitHub Actions**.
-3. Ejecutar **Actions → Publicar Creangel en GitHub Pages → Run workflow** sobre la rama predeterminada, o hacer un nuevo push a esa rama. El flujo también se ejecuta automáticamente en futuros cambios a la rama predeterminada.
-4. El despliegue muestra su URL real en el entorno `github-pages-production`. La URL, el prefijo del repositorio, los canónicos, Open Graph, JSON-LD, sitemap y robots se obtienen automáticamente de `actions/configure-pages`.
+Cada editor necesita una cuenta incluida en `CMS_ALLOWED_USERS` y permiso de escritura sobre `CONTENT_REPOSITORY`. Conocer la dirección del panel no concede permisos. No se habilita edición abierta. Los textos ES/EN se mantienen por separado.
 
-El workflow no necesita PAT ni secretos adicionales: utiliza los permisos de GitHub Actions para Pages. Los pasos de construcción comprueban enlaces, recursos, conservación del contenido y URLs históricas antes de publicar. Solo `_site/` se envía a Pages; `.pages/`, README y configuración de Actions quedan fuera del sitio público.
+## Arquitectura
 
-## Rutas conservadas
+Compose configura Nginx, broker OAuth, publicador y Caddy HTTPS. Un servicio de inicialización instala la primera versión completa. Certificados, publicaciones y estado usan volúmenes persistentes. Solo el proxy expone puertos públicos; ningún servicio monta el socket de Docker.
 
-- Soporte: `/Landing-creangel/soporte/`.
-- CCE Search: `/Landing-creangel/ifinditsearch/`.
-- CCE Analytics: `/Landing-creangel/ifinditanalytics/`.
-- CCE Information Services: `/Landing-creangel/ifinditsearch/informationservices/`.
-- 70 rutas anteriores tienen HTML de compatibilidad con redirección de navegador y enlace alternativo. GitHub Pages no reproduce los HTTP 301 de Apache.
-- 307 rutas históricas de imágenes, documentos y otros recursos se materializan con bytes idénticos al original. Los PDF y las imágenes siguen siendo archivos de su tipo.
-- `404.html` utiliza el prefijo correcto; funciona incluso al abrir una URL inexistente en varios niveles.
+El publicador verifica HMAC SHA-256, repositorio y rama, conserva los identificadores de entrega, serializa la cola y activa cada publicación mediante un enlace simbólico sustituido atómicamente. Si falla la construcción, mantiene la publicación anterior. Conserva cinco versiones y la semilla inicial. Los borradores de Decap usan ramas; publicar los incorpora a `main` y activa el webhook.
 
-Jira conserva su script y configuración originales. Los estilos y validaciones dentro del iframe pertenecen al proveedor. Se mantiene la CSP compatible con meta en cada HTML, con las dependencias del widget solo en soporte. Las cabeceras HTTP de Apache/Nginx no se configuran mediante GitHub Pages; por ello no se incluye `.htaccess` en esta distribución.
+## Instalación en Linux
+
+Requisitos: Docker Engine con Compose, dominio apuntando al servidor y puertos 80/443 disponibles. Git, Python y Node de construcción están en los contenedores.
+
+1. Copiar o clonar el repositorio. Preparar configuración y secretos sin sobrescribir valores existentes:
+
+```sh
+docker run --rm -v "$PWD:/app" -w /app node:24-bookworm-slim node ops/setup-secrets.mjs
+```
+
+También sirve `node ops/setup-secrets.mjs` si existe Node 24. Crea `.env`, un secreto aleatorio de webhook y archivos vacíos para OAuth y token de lectura opcional. No inventa credenciales OAuth.
+
+2. Crear una **GitHub OAuth App**:
+
+   - Homepage URL: `https://portal.creangel.com`
+   - Authorization callback URL: `https://portal.creangel.com/auth/callback`
+
+   Guardar Client ID en `GITHUB_CLIENT_ID` de `.env` y Client Secret en `secrets/github-client-secret`. El broker usa alcance `public_repo` para el repositorio público actual. Un repositorio privado requiere adaptar ese alcance y proporcionar acceso de lectura al publicador.
+
+3. Configurar `.env`:
+
+```dotenv
+PUBLIC_SITE_URL=https://portal.creangel.com
+SITE_DOMAIN=portal.creangel.com
+CONTENT_REPOSITORY=castellanosfelipe/Landing-creangel
+CONTENT_BRANCH=main
+CMS_ALLOWED_USERS=castellanosfelipe
+GITHUB_CLIENT_ID=client-id-real
+ACME_EMAIL=soluciones@creangel.com
+```
+
+   Para varios editores, añadir cuentas reales separadas por comas. Todas necesitan permiso de escritura. `secrets/github-read-token` puede quedar vacío para este repositorio público; para lectura privada se utiliza un token limitado al repositorio. Los secretos son archivos locales excluidos de Git. En Linux deben poder ser leídos por UID/GID 1000; el preparador ajusta su propietario cuando se ejecuta como root y mantiene permisos 0600.
+
+4. Configurar **Settings → Webhooks → Add webhook** en el repositorio:
+
+   - Payload URL: `https://portal.creangel.com/publish/webhook`
+   - Content type: `application/json`
+   - Secret: contenido de `secrets/github-webhook-secret`
+   - Eventos: **Just the push event**
+   - Verificación SSL habilitada.
+
+5. Confirmar que esta versión del código esté en la rama configurada y arrancar:
+
+```sh
+docker compose config --quiet
+docker compose up -d --build
+docker compose ps
+```
+
+El broker falla explícitamente si faltan credenciales. Caddy obtiene y renueva HTTPS cuando DNS, conectividad y puertos lo permiten. La semilla sirve la primera publicación sin esperar GitHub. El publicador se activa por push firmado o comando local; no reconstruye automáticamente en cada arranque.
+
+## Proxy HTTPS existente
+
+```sh
+docker compose -f compose.yaml -f compose.external-proxy.yaml up -d --build
+```
+
+El override excluye Caddy y expone Nginx solo en `127.0.0.1:8080`. El proxy existente debe enviar el dominio público a esa dirección, incluyendo `/auth/` y `/publish/webhook`. OAuth conserva el origen HTTPS público.
+
+## Uso y operación
+
+Abrir `/admin/`, iniciar sesión con GitHub y elegir **Documentación · Español** o **Documentation · English**. Guardar el borrador y publicar cuando esté listo. El sitio cambia al terminar la construcción. Las traducciones nuevas deben conservar el nombre de archivo y ruta de su documento español. Las imágenes se guardan en `public/multimedia/documentacion` y se comparten entre idiomas. El panel no convierte HTML comercial ni componentes React en campos visuales.
+
+```sh
+docker compose logs --tail=100 publisher
+docker compose exec publisher node cli.mjs list
+docker compose exec publisher node cli.mjs publish
+docker compose exec publisher node cli.mjs rollback release-YYYYMMDDHHMMSS-revision
+docker compose up -d --no-deps auth
+```
+
+`rollback` está disponible solo desde el servidor. Publicación y recuperación comparten bloqueo. Los cambios editoriales no requieren reconstruir contenedores; los cambios de infraestructura sí. No ejecutar `docker compose down -v` si se quieren conservar certificados, publicaciones y estado.
+
+Para añadir editores, concederles permiso de escritura en GitHub, incluirlos en `CMS_ALLOWED_USERS` y recrear `auth` con el comando anterior. Para retirar un editor, quitarlo también de los colaboradores del repositorio: cambiar la lista del broker no revoca por sí solo un token OAuth que ya se haya emitido. Después de actualizar contenedores con una publicación existente, ejecutar `publish` para construir la rama actual; la inicialización conserva la versión que ya estaba activa.
 
 ## Construcción local
 
-Requiere Python 3; los scripts no necesitan paquetes externos. Ejecutar desde la raíz del repositorio:
-
 ```sh
-python3 .pages/export.py --base-url https://castellanosfelipe.github.io/Landing-creangel/
-python3 .pages/check.py --base-url https://castellanosfelipe.github.io/Landing-creangel/
+npm ci --no-audit --no-fund
+npm --prefix documentation ci --no-audit --no-fund
+npm test
+npm run build:production -- --output _site --base-url https://portal.creangel.com
 python3 -m http.server 8080 --directory _site
 ```
 
-El exportador requiere una carpeta de salida vacía para evitar contenido residual. Para otra compilación usar `--output` con una carpeta nueva y pasar la misma ruta a `check.py --site-root`. La visualización local en raíz permite revisar enlaces y contenido; para comprobar exactamente el prefijo y el 404, servir la compilación dentro de una carpeta `Landing-creangel/` y abrir esa ruta.
+Requiere Python 3 fuera de Docker; `PYTHON` permite indicar su ejecutable. La salida debe ser nueva o vacía. Primero se verifica la conservación comercial; después se añaden documentación/panel y se comprueban los enlaces de toda la distribución. Se conservan 70 rutas antiguas y 307 recursos históricos.
 
-## Contenido editable
+Las pruebas OAuth usan un proveedor simulado. Los tests del publicador cubren firmas, repetición, cola, bloqueo, activación y conservación ante fallos. Las pruebas de enlaces simbólicos necesitan Linux o permisos de creación en Windows. OAuth real y certificados requieren dominio y credenciales de producción.
 
-Los HTML, CSS, JavaScript, documentos e imágenes están en `public/`. Los cambios del sitio se hacen allí y se publican mediante el workflow. Los scripts de `.pages/` adaptan únicamente metadatos, políticas compatibles con Pages y rutas históricas; conservan el cuerpo visible de las 120 páginas y los bytes de los activos.
+## Estructura
 
-Referencias oficiales: [workflows para Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), [404 personalizado](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site), [límites de Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits).
+- `public/`: portal y plantilla del panel.
+- `documentation/`: Docusaurus, Markdown ES/EN y estilos.
+- `ops/`: construcción/verificación, servidores OAuth/publicador, Nginx/Caddy.
+- `.pages/`: exportación y conservación de rutas; se reutilizan sus checks sin depender de Pages.
+- `compose.yaml`, `Dockerfile`: instalación en servidor propio.
+- `.env.example`: configuración pública de ejemplo.
+- `.env`, `secrets/`, dependencias y compilaciones: excluidos del repositorio.
 
-## Idiomas ES/EN
-
-El selector ES/EN de la barra superior abre la misma página en el idioma elegido. El español conserva sus rutas; el inglés utiliza `/en/` delante de ellas. Los enlaces internos, diagramas, buscadores, paginación, textos accesibles y metadatos tienen versión inglesa. La navegación conserva el idioma, y el selector conserva los parámetros de búsqueda y el fragmento cuando JavaScript está disponible. Los enlaces del selector también funcionan sin JavaScript.
-
-Los archivos multimedia se comparten entre idiomas. Los documentos descargables, el texto dentro de las imágenes y la interfaz externa de Jira conservan su idioma original. Los números de parte, límites de licencias, datos de contacto e identificadores se conservan.
-
-Las traducciones se guardan en `.pages/i18n/en.json`; no hay dependencia de servicios de traducción durante las visitas. Para actualizar contenido, editar el HTML español y añadir o revisar su traducción en ese catálogo. Regenerar antes de exportar:
-
-```sh
-python3 .pages/localize.py
-python3 .pages/export.py --base-url https://castellanosfelipe.github.io/Landing-creangel/
-python3 .pages/check.py --base-url https://castellanosfelipe.github.io/Landing-creangel/
-```
-
-`localize.py` conserva los ejemplos de código, genera las páginas inglesas y sus diagramas traducidos, actualiza los enlaces entre idiomas y el sitemap bilingüe. La comprobación de Pages valida las 120 páginas canónicas y la correspondencia de idiomas.
-
-## Estructura depurada
-
-- `public/`: 120 páginas canónicas ES/EN y sus recursos multimedia, estilos, JavaScript, robots y sitemap.
-- `.pages/`: exportador, verificador, configuración de rutas y mantenimiento de las traducciones.
-- `.github/workflows/pages.yml`: único workflow de publicación, con Ubuntu 24.04 fijado.
-- README y configuración de Git: instrucciones y control de archivos.
-
-Las 70 redirecciones históricas se generan durante la exportación desde `.pages/config.json`. Sus HTML no se guardan duplicados en `public/`. Los 307 recursos con rutas históricas también se materializan durante la exportación. Los paquetes, informes privados, capturas de trabajo, modelos y hojas de origen quedan fuera del repositorio.
-
-Las comparaciones de un commit muestran diferencias de código. `404.html` es la página de error personalizada; su presencia no indica un fallo de publicación. Si Actions muestra “The job was not acquired by Runner of type hosted even after multiple attempts”, el trabajo no obtuvo un ejecutor y no llegó a ejecutar el sitio ni la construcción. La imagen fijada evita los avisos de migración de `ubuntu-latest`; no garantiza resolver una incidencia del servicio de GitHub.
+Referencias: [Docusaurus](https://docusaurus.io/docs/deployment), [Decap](https://decapcms.org/docs/github-backend/), [Compose](https://docs.docker.com/compose/), [webhooks](https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries).
