@@ -34,10 +34,18 @@ module.exports = {
     theme: {customCss: require.resolve('./src/css/custom.css')},
   }]],
   themeConfig: {
+    image: rootLink('/assets/og-creangel.png'),
     colorMode: {defaultMode: 'light', disableSwitch: true, respectPrefersColorScheme: false},
     navbar: {
       title: 'Documentación',
-      logo: {alt: 'Creangel', src: rootLink('/assets/logo-creangel.png'), href: rootLink('/')},
+      logo: {
+        alt: 'Creangel',
+        src: rootLink('/assets/logo-creangel.png'),
+        href: rootLink('/'),
+        width: 272,
+        height: 67,
+        style: {width: 'auto'},
+      },
       items: [
         {type: 'docSidebar', sidebarId: 'documentation', label: 'IFINDIT', position: 'left'},
         {href: rootLink('/'), label: 'Sitio web', position: 'right', target: '_self'},

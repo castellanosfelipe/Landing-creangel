@@ -112,6 +112,27 @@ Requiere Python 3 fuera de Docker; `PYTHON` permite indicar su ejecutable. La sa
 
 Las pruebas OAuth usan un proveedor simulado. Los tests del publicador cubren firmas, repetición, cola, bloqueo, activación y conservación ante fallos. Las pruebas de enlaces simbólicos necesitan Linux o permisos de creación en Windows. OAuth real y certificados requieren dominio y credenciales de producción.
 
+## SEO y conservación del diseño
+
+`ops/seo/metadata.json` define títulos y descripciones de las 114 páginas comerciales indexables. La construcción aplica sus metadatos y JSON-LD sin cambiar el cuerpo de las páginas. Los esquemas usan únicamente información existente; no agregan precios, reseñas, autores ni fechas de actualización ficticias. Docusaurus administra sus propios metadatos durante el renderizado y la navegación.
+
+El sitemap de producción combina las 114 páginas comerciales con los 16 documentos ES/EN. El buscador interno, las páginas 404, la vacante histórica y el panel conservan `noindex`. El control SEO verifica canonical, hreflang recíprocos, metadatos, JSON-LD, imágenes, referencias locales y páginas huérfanas antes de activar una versión.
+
+```sh
+python3 ops/seo/check.py --root _site --base-url https://portal.creangel.com --report seo-validation.json
+python3 ops/seo/generate-redirects.py --check
+```
+
+Las 70 rutas antiguas reciben redirecciones HTTP 301 en Nginx, con sus variantes con y sin barra final y parámetros conservados. Al modificar aliases en `.pages/config.json`, regenerar el mapa con `python3 ops/seo/generate-redirects.py` y reconstruir el servicio web. HTML usa `no-cache`; CSS/JS, imágenes y fuentes tienen caché separada. Los recursos sin nombres versionados no usan `immutable`.
+
+Las imágenes responsive conservan los originales y sus dimensiones visibles. Para regenerar WebP y la imagen social con Sharp instalado:
+
+```sh
+node ops/seo/optimize-images.mjs --sharp-module /ruta/node_modules/sharp
+```
+
+Después de instalar en el servidor, verificar HTTPS, 301/404 y cabeceras con solicitudes reales, registrar el sitemap en Google Search Console y Bing Webmaster Tools y medir Core Web Vitals en producción. Las comprobaciones de construcción no sustituyen esas mediciones.
+
 ## Estructura
 
 - `public/`: portal y plantilla del panel.

@@ -28,8 +28,10 @@ function run(exe, args, cwd = root, env = {}) {
 }
 
 // Verify the existing website before adding generated documentation and admin.
+run(python, ['ops/seo/generate-redirects.py', '--check']);
 run(python, ['.pages/export.py', '--output', output, '--base-url', siteURL]);
 run(python, ['.pages/check.py', '--site-root', output, '--base-url', siteURL]);
+run(python, ['ops/seo/apply.py', '--root', output, '--base-url', siteURL]);
 run(process.execPath, [npmCli, 'run', 'build'], path.join(root, 'documentation'), {PUBLIC_SITE_URL: siteURL});
 fs.cpSync(path.join(root, 'documentation/build'), path.join(output, 'documentacion'), {recursive: true});
 // Docusaurus locale alternates use /404/ while its error pages are emitted as 404.html.
@@ -64,12 +66,13 @@ for (const route of siteConfig.routes) {
   html = html.replace(/(<a href="[^"]*recursos\/">)(Resources|Recursos)(<\/a>)/g, `<a href="${href}">${label}</a>$1$2$3`);
   fs.writeFileSync(file, html);
 }
-const docsSitemap = path.join(output, 'documentacion/sitemap.xml');
-if (fs.existsSync(docsSitemap)) {
-  const entries = fs.readFileSync(docsSitemap, 'utf8').match(/<url>.*?<\/url>/gs) || [];
-  const sitemap = path.join(output, 'sitemap.xml');
-  fs.writeFileSync(sitemap, fs.readFileSync(sitemap, 'utf8').replace('</urlset>', entries.join('') + '</urlset>'));
-}
+// Each Docusaurus locale emits its own sitemap. Include both language trees.
+const docsEntries = ['', 'en'].flatMap(locale => {
+  const sitemap = path.join(output, 'documentacion', locale, 'sitemap.xml');
+  return fs.existsSync(sitemap) ? fs.readFileSync(sitemap, 'utf8').match(/<url>.*?<\/url>/gs) || [] : [];
+});
+const sitemap = path.join(output, 'sitemap.xml');
+fs.writeFileSync(sitemap, fs.readFileSync(sitemap, 'utf8').replace('</urlset>', docsEntries.join('') + '</urlset>'));
 const manifest = {
   schema: 1, version: '1.0.0', site_url: siteURL, repository: repo, branch,
   commercial_pages: siteConfig.routes.length,
@@ -80,4 +83,5 @@ const manifest = {
 };
 fs.writeFileSync(path.join(output, 'site-manifest.json'), JSON.stringify(manifest, null, 2));
 run(python, ['ops/verify-site.py', '--root', output, '--base-url', siteURL]);
+run(python, ['ops/seo/check.py', '--root', output, '--base-url', siteURL]);
 console.log(`Production site ready: ${output}`);

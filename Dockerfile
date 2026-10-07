@@ -9,6 +9,7 @@ COPY .pages ./.pages
 COPY public ./public
 COPY documentation ./documentation
 COPY ops/build.mjs ops/verify-site.py ./ops/
+COPY ops/seo ./ops/seo
 ARG PUBLIC_SITE_URL=https://portal.creangel.com
 ARG CONTENT_REPOSITORY=castellanosfelipe/Landing-creangel
 ARG CONTENT_BRANCH=main
@@ -23,5 +24,6 @@ CMD ["node", "/opt/seed.mjs"]
 
 FROM nginx:1.28-alpine AS web
 COPY ops/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ops/seo/nginx-redirects.conf /etc/nginx/seo/nginx-redirects.conf
 EXPOSE 8080
 HEALTHCHECK --interval=20s --timeout=3s CMD wget -q -O /dev/null http://127.0.0.1:8080/health || exit 1
