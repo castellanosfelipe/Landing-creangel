@@ -10,5 +10,7 @@ secrets
 *.zip
 *.log
 ops/test
-ops/auth/test
-ops/publisher/test
+ops/editor/test
+ops/storage/test
+work
+outputs

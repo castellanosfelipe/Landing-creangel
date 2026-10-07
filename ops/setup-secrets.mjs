@@ -13,10 +13,10 @@ function createFile(file,value) {
   catch (error) { if (error.code==='EEXIST') return; throw error; }
   if (runningAsRoot) fs.chownSync(file,1000,1000);
 }
-for (const [name,value] of [['github-client-secret',''],['github-webhook-secret',randomBytes(32).toString('hex')],['github-read-token','']]) {
+for (const [name,value] of [['editor-admin-password',randomBytes(24).toString('base64url')+'\n']]) {
   const file=path.join(dir,name);
   createFile(file,value);
 }
 const environmentFile=path.join(root,'.env');
 if (!fs.existsSync(environmentFile)) createFile(environmentFile,fs.readFileSync(path.join(root,'.env.example')));
-console.log('Configuration files prepared. Existing values, ownership and permissions were preserved. Fill GITHUB_CLIENT_ID in .env and the OAuth secret in secrets/github-client-secret.');
+console.log('Configuración preparada. Usuario inicial: INITIAL_ADMIN_USERNAME (admin por defecto). La contraseña está en secrets/editor-admin-password; no se imprime ni se incorpora a Git. Cambie la contraseña al iniciar sesión.');

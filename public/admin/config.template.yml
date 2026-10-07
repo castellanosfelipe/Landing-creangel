@@ -1,13 +1,9 @@
-# Generated during deployment from public environment values. Never store OAuth secrets here.
+# Content and accounts are managed by the portal server.
 backend:
-  name: github
-  repo: '{{CONTENT_REPOSITORY}}'
-  branch: '{{CONTENT_BRANCH}}'
-  base_url: '{{PUBLIC_SITE_URL}}'
-  auth_endpoint: auth/auth
-  squash_merges: true
+  name: creangel-local
+  proxy_url: /api/content
 
-publish_mode: editorial_workflow
+publish_mode: simple
 site_url: '{{PUBLIC_SITE_URL}}'
 display_url: '{{PUBLIC_SITE_URL}}/documentacion/'
 logo_url: '{{PUBLIC_SITE_URL}}/assets/logo-creangel.png'
@@ -19,7 +15,7 @@ collections:
   - name: documentation_es
     label: Documentación · Español
     label_singular: Documento en español
-    description: Contenido público de IFINDIT en español. Guarde el borrador y publíquelo cuando esté listo.
+    description: Documentación pública de IFINDIT en español. Al guardar se prepara su publicación.
     folder: documentation/docs
     create: true
     delete: false
@@ -55,7 +51,7 @@ collections:
   - name: documentation_en
     label: Documentation · English
     label_singular: English document
-    description: Public IFINDIT documentation in English. Save a draft and publish when ready.
+    description: Public IFINDIT documentation in English. Saving prepares the updated publication.
     folder: documentation/i18n/en/docusaurus-plugin-content-docs/current
     create: true
     delete: false
