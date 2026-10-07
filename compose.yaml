@@ -50,6 +50,12 @@ services:
       CONTENT_BRANCH: ${CONTENT_BRANCH:-main}
       GITHUB_WEBHOOK_SECRET_FILE: /run/secrets/github_webhook_secret
       GITHUB_READ_TOKEN_FILE: /run/secrets/github_read_token
+      PUBLISH_ON_STARTUP: ${PUBLISH_ON_STARTUP:-false}
+      PUBLISH_MAX_RETRIES: ${PUBLISH_MAX_RETRIES:-3}
+      PUBLISH_RETRY_BASE_SECONDS: ${PUBLISH_RETRY_BASE_SECONDS:-5}
+      PUBLISH_RETRY_MAX_SECONDS: ${PUBLISH_RETRY_MAX_SECONDS:-60}
+      BUILD_TIMEOUT_SECONDS: ${BUILD_TIMEOUT_SECONDS:-1200}
+      KEEP_RELEASES: ${KEEP_RELEASES:-5}
     secrets: [github_webhook_secret, github_read_token]
     volumes:
       - releases:/srv/releases

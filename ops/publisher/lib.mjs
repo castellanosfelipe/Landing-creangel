@@ -23,6 +23,9 @@ export function configFromEnvironment(env = process.env) {
     if (!Number.isInteger(value) || value < min || value > max) throw new Error(`Invalid ${name}`);
     return value;
   };
+  const retryBaseMs = integer('PUBLISH_RETRY_BASE_SECONDS', 5, 1, 600) * 1000;
+  const retryMaxMs = integer('PUBLISH_RETRY_MAX_SECONDS', 60, 1, 3600) * 1000;
+  if (retryMaxMs < retryBaseMs) throw new Error('PUBLISH_RETRY_MAX_SECONDS must be at least PUBLISH_RETRY_BASE_SECONDS');
   return {
     repository, branch, siteUrl: site.origin,
     port: integer('PUBLISHER_PORT', 3001, 1, 65535),
@@ -35,6 +38,7 @@ export function configFromEnvironment(env = process.env) {
     debounceMs: integer('PUBLISH_DEBOUNCE_MS', 1500, 0, 10000),
     timeoutMs: integer('BUILD_TIMEOUT_SECONDS', 1200, 30, 7200) * 1000,
     keepReleases: integer('KEEP_RELEASES', 5, 2, 100),
+    maxRetries: integer('PUBLISH_MAX_RETRIES', 3, 0, 10), retryBaseMs, retryMaxMs,
     maxBodyBytes: 1024 * 1024,
   };
 }
@@ -65,17 +69,21 @@ export class DeliveryLedger {
     this.lifetimeMs = lifetimeMs;
     this.chain = Promise.resolve();
   }
-  async accept(deliveryId, beforeRecord = async () => {}) {
+  async accept(deliveryId, beforeRecord = async () => {}, shouldRetry = async () => false) {
     const operation = this.chain.then(async () => {
       const stored = await readJson(this.filename, []);
       if (!Array.isArray(stored)) throw new Error('Invalid delivery ledger');
       const now = Date.now();
       const entries = stored.filter(item => item && typeof item.id === 'string' && Number.isFinite(item.at) && now - item.at < this.lifetimeMs);
-      if (entries.some(item => item.id === deliveryId)) return false;
+      const previous = entries.find(item => item.id === deliveryId);
+      if (previous && !(await shouldRetry(previous))) return false;
       // Persist queued work before deduplicating the delivery. A failed queue write can be retried.
-      await beforeRecord();
-      entries.push({ id: deliveryId, at: now });
-      await writeJsonAtomically(this.filename, entries.slice(-this.limit));
+      const workId = await beforeRecord();
+      const entry = { id: deliveryId, at: now };
+      if (typeof workId === 'string') entry.workId = workId;
+      const updated = entries.filter(item => item.id !== deliveryId);
+      updated.push(entry);
+      await writeJsonAtomically(this.filename, updated.slice(-this.limit));
       return true;
     });
     this.chain = operation.catch(() => {});
@@ -98,28 +106,56 @@ export class PublicationLock {
   }
   async acquire() {
     await fs.mkdir(path.dirname(this.filename), { recursive: true });
+    // Make complete metadata visible in one exclusive operation. A crash before
+    // link() leaves only a temporary file, never an empty publication lock.
+    const temporary = `${this.filename}.${randomUUID()}.tmp`;
+    const handle = await fs.open(temporary, 'wx', 0o600);
     try {
-      this.handle = await fs.open(this.filename, 'wx', 0o600);
-    } catch (error) {
-      if (error.code !== 'EEXIST') throw error;
-      let existing;
-      try { existing = await readJson(this.filename, null); }
-      catch { throw new Error('A publication lock already exists'); }
-      let live = true;
-      if (existing && Number.isInteger(existing.pid) && existing.pid > 0) {
-        try { process.kill(existing.pid, 0); } catch (check) { if (check.code === 'ESRCH') live = false; }
-        if (live && existing.processIdentity) {
-          const actual = await this.identity(existing.pid);
-          if (actual && actual !== existing.processIdentity) live = false;
-        } else if (live && existing.pid === process.pid && Date.parse(existing.createdAt) < PROCESS_STARTED_AT) {
-          live = false;
+      await handle.writeFile(JSON.stringify({ pid: process.pid, processIdentity: await this.identity(process.pid), createdAt: new Date().toISOString() }));
+      await handle.sync();
+      try {
+        await fs.link(temporary, this.filename);
+      } catch (error) {
+        if (error.code !== 'EEXIST') throw error;
+        // Two contenders must never both remove a stale lock: one could
+        // otherwise unlink the other's newly acquired, live publication lock.
+        const recovery = `${this.filename}.recovery`;
+        try { await fs.link(temporary, recovery); }
+        catch (check) {
+          if (check.code === 'EEXIST') throw new Error('A publication lock recovery already exists');
+          throw check;
+        }
+        try {
+          let existing;
+          try { existing = await readJson(this.filename, null); }
+          catch { throw new Error('A publication lock already exists'); }
+          if (existing === null) await fs.link(temporary, this.filename);
+          else {
+            let live = true;
+            if (Number.isInteger(existing.pid) && existing.pid > 0) {
+              try { process.kill(existing.pid, 0); } catch (check) { if (check.code === 'ESRCH') live = false; }
+              if (live && existing.processIdentity) {
+                const actual = await this.identity(existing.pid);
+                if (actual && actual !== existing.processIdentity) live = false;
+              } else if (live && existing.pid === process.pid && Date.parse(existing.createdAt) < PROCESS_STARTED_AT) {
+                live = false;
+              }
+            }
+            if (live) throw new Error('A publication or rollback is already running');
+            await fs.unlink(this.filename);
+            await fs.link(temporary, this.filename);
+          }
+        } finally {
+          await fs.unlink(recovery);
         }
       }
-      if (live) throw new Error('A publication or rollback is already running');
-      await fs.unlink(this.filename);
-      this.handle = await fs.open(this.filename, 'wx', 0o600);
+      this.handle = handle;
+    } catch (error) {
+      await handle.close();
+      throw error;
+    } finally {
+      await fs.rm(temporary, { force: true });
     }
-    await this.handle.writeFile(JSON.stringify({ pid: process.pid, processIdentity: await this.identity(process.pid), createdAt: new Date().toISOString() }));
   }
   async release() {
     if (this.handle) {
@@ -306,57 +342,91 @@ export class GitBuilder {
 }
 
 export class PublishQueue {
-  constructor({ filename, run, debounceMs = 1500, logger = console }) {
+  constructor({ filename, run, debounceMs = 1500, maxRetries = 3, retryBaseMs = 5000, retryMaxMs = 60000, now = Date.now, logger = console }) {
     this.filename = filename; this.run = run; this.debounceMs = debounceMs; this.logger = logger;
+    this.maxRetries = maxRetries; this.retryBaseMs = retryBaseMs; this.retryMaxMs = retryMaxMs; this.now = now;
     this.pending = false; this.running = false; this.closed = false; this.timer = null; this.lastResult = null;
+    this.pendingWorkId = null; this.activeWork = null;
     this.serial = Promise.resolve();
+  }
+  serialize(operation) {
+    const result = this.serial.then(operation);
+    this.serial = result.catch(() => {});
+    return result;
+  }
+  persist() {
+    return writeJsonAtomically(this.filename, { pending: this.pending, pendingWorkId: this.pendingWorkId, activeWork: this.activeWork, lastResult: this.lastResult });
   }
   async restore() {
     const state = await readJson(this.filename, {});
-    if (state.pending) await this.enqueue();
+    this.pending = state.pending === true;
+    this.pendingWorkId = this.pending ? (state.pendingWorkId || randomUUID()) : null;
+    this.activeWork = state.activeWork || null;
+    this.lastResult = state.lastResult || null;
+    if (this.pending || this.activeWork) this.schedule();
   }
   async enqueue() {
-    const operation = this.serial.then(async () => {
+    return this.serialize(async () => {
+      if (!this.pending) this.pendingWorkId = randomUUID();
       this.pending = true;
-      await writeJsonAtomically(this.filename, { pending: true });
+      await this.persist();
       this.schedule();
+      return this.pendingWorkId;
     });
-    this.serial = operation.catch(() => {});
-    return operation;
   }
   schedule() {
-    if (this.closed || this.running || this.timer) return;
+    if (this.closed || this.running || this.timer || (!this.pending && !this.activeWork)) return;
+    const delay = this.activeWork ? Math.max(0, this.activeWork.nextAttemptAt - this.now()) : this.debounceMs;
     this.timer = setTimeout(() => {
       this.timer = null;
       void this.drain().catch(() => this.logger.error('Unable to persist publication queue state'));
-    }, this.debounceMs);
+    }, delay);
   }
   async drain() {
-    if (this.closed || this.running || !this.pending) return;
+    if (this.closed || this.running || (!this.pending && !this.activeWork)) return;
+    if (this.activeWork && this.activeWork.nextAttemptAt > this.now()) { this.schedule(); return; }
     this.running = true;
-    this.pending = false;
+    let work;
     try {
-      // Persist the in-flight work as pending until it completes, so a restart can retry.
+      await this.serialize(async () => {
+        if (!this.activeWork) {
+          this.activeWork = { id: this.pendingWorkId, failures: 0, nextAttemptAt: this.now() };
+          this.pending = false;
+          this.pendingWorkId = null;
+        }
+        work = this.activeWork;
+        // Keep the in-flight batch durable until activation completes.
+        await this.persist();
+      });
       const release = await this.run();
-      this.lastResult = { status: 'success', finishedAt: new Date().toISOString() };
+      this.activeWork = null;
+      this.lastResult = { status: 'success', workId: work.id, attempts: work.failures + 1, finishedAt: new Date(this.now()).toISOString() };
       this.logger.info(`Publication activated: ${release}`);
     } catch (error) {
-      this.lastResult = { status: 'failed', finishedAt: new Date().toISOString() };
-      this.logger.error(`Publication failed; previous release retained (${error.message})`);
+      if (work) {
+        work.failures++;
+        const retry = work.failures <= this.maxRetries;
+        work.nextAttemptAt = this.now() + Math.min(this.retryMaxMs, this.retryBaseMs * 2 ** (work.failures - 1));
+        this.activeWork = retry ? work : null;
+        this.lastResult = { status: retry ? 'retrying' : 'failed', workId: work.id, attempts: work.failures, finishedAt: new Date(this.now()).toISOString() };
+        if (retry) this.lastResult.nextRetryAt = new Date(work.nextAttemptAt).toISOString();
+        this.logger.error(`Publication failed; previous release retained${retry ? '; retry scheduled' : '; retries exhausted'} (${error.message})`);
+      }
     } finally {
-      const finish = this.serial.then(async () => {
-        try { await writeJsonAtomically(this.filename, { pending: this.pending }); }
+      await this.serialize(async () => {
+        try { await this.persist(); }
         finally {
           this.running = false;
-          if (this.pending) this.schedule();
+          this.schedule();
         }
       });
-      this.serial = finish.catch(() => {});
-      await finish;
     }
   }
+  canRetry(workId) {
+    return typeof workId === 'string' && this.lastResult?.status === 'failed' && this.lastResult.workId === workId && !this.running && !this.pending && !this.activeWork;
+  }
   close() { this.closed = true; clearTimeout(this.timer); }
-  status() { return { building: this.running, pending: this.pending, lastResult: this.lastResult }; }
+  status() { return { building: this.running, pending: this.pending || (!!this.activeWork && !this.running), lastResult: this.lastResult }; }
 }
 
 async function readBody(request, maximum) {
@@ -397,7 +467,8 @@ export function createWebhookServer({ config, secret, ledger, queue, releases, l
       const event = request.headers['x-github-event'];
       if (event !== 'push' && event !== 'ping') return reply(response, 200, { ignored: true });
       if (event === 'push' && (payload.ref !== `refs/heads/${config.branch}` || payload.deleted === true)) return reply(response, 200, { ignored: true });
-      if (!(await ledger.accept(delivery, event === 'push' ? () => queue.enqueue() : undefined))) return reply(response, 200, { duplicate: true });
+      if (!(await ledger.accept(delivery, event === 'push' ? () => queue.enqueue() : undefined,
+        entry => event === 'push' && queue.canRetry?.(entry.workId) === true))) return reply(response, 200, { duplicate: true });
       if (event === 'ping') return reply(response, 200, { received: true });
       return reply(response, 202, { queued: true });
     } catch (error) {

@@ -9,7 +9,9 @@ const releases = new ReleaseStore(config.releaseRoot, { keepReleases: config.kee
 const lock = new PublicationLock(path.join(config.stateRoot, 'publish.lock'));
 const builder = new GitBuilder(config);
 await lock.run(() => releases.bootstrap(config.seedPath));
-const queue = new PublishQueue({ filename: path.join(config.stateRoot, 'queue.json'), debounceMs: config.debounceMs, run: () => lock.run(() => releases.publish(stage => builder.build(stage))) });
+const queue = new PublishQueue({ filename: path.join(config.stateRoot, 'queue.json'), debounceMs: config.debounceMs,
+  maxRetries: config.maxRetries, retryBaseMs: config.retryBaseMs, retryMaxMs: config.retryMaxMs,
+  run: () => lock.run(() => releases.publish(stage => builder.build(stage))) });
 await queue.restore();
 if (config.startupPublish) await queue.enqueue();
 const ledger = new DeliveryLedger(path.join(config.stateRoot, 'deliveries.json'));

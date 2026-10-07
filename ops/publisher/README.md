@@ -15,6 +15,9 @@ Este servicio recibe los cambios de contenido desde un webhook de GitHub, constr
 | `PUBLISHER_STATE_ROOT` | `/var/lib/publisher` | Volumen persistente de caché Git/npm, cola e identificadores de entrega. |
 | `PUBLISH_ON_STARTUP` | `false` | `true` sincroniza con Git al iniciar; habilitar después de subir esta implementación al repositorio. |
 | `PUBLISH_DEBOUNCE_MS` | `1500` | Agrupa cambios próximos en una sola construcción. |
+| `PUBLISH_MAX_RETRIES` | `3` | Reintentos después del intento inicial: hasta cuatro intentos en total. `0` desactiva el reintento automático. |
+| `PUBLISH_RETRY_BASE_SECONDS` | `5` | Espera inicial entre intentos fallidos, duplicada en cada reintento. |
+| `PUBLISH_RETRY_MAX_SECONDS` | `60` | Tope de la espera entre reintentos; debe ser mayor o igual a la espera inicial. |
 | `BUILD_TIMEOUT_SECONDS` | `1200` | Límite por comando de descarga, instalación o construcción. |
 | `KEEP_RELEASES` | `5` | Conserva las últimas versiones, la versión activa y la inicial. |
 | `PUBLISHER_PORT` | `3001` | Puerto interno del servicio. |
@@ -27,6 +30,8 @@ El contenedor ejecuta Node con UID/GID `1000`. El volumen de versiones debe perm
 En el repositorio autorizado, configurar un webhook para eventos **push** con tipo `application/json`, URL `https://DOMINIO/publish/webhook` y el secreto montado en el servicio. El evento **ping** se verifica y responde sin construir. El servicio comprueba la firma HMAC SHA-256 del cuerpo original, el repositorio y la rama; ignora ramas ajenas y elimina entregas repetidas durante siete días, hasta un máximo de 5.000 identificadores.
 
 Un cambio aceptado devuelve `202`. La cola persiste antes de registrar la entrega, recupera trabajo pendiente tras un reinicio y ejecuta como máximo una construcción. Durante una construcción, los nuevos cambios quedan agrupados para una siguiente sincronización con la última revisión de la rama. El commit recibido en el payload nunca se ejecuta directamente.
+
+Un error transitorio conserva el lote pendiente y programa hasta tres reintentos después del intento inicial, con esperas predeterminadas de 5, 10 y 20 segundos. El lote, el número de fallos y la hora del siguiente intento quedan persistidos: reiniciar conserva la espera y los intentos restantes. Al agotar los intentos, una redelivery firmada de ese lote puede encolarlo nuevamente. Las entregas pendientes, en construcción o ya publicadas continúan deduplicadas; una publicación posterior de la rama sustituye el lote fallido anterior. El resultado `retrying` y `nextRetryAt` aparecen en el estado local de salud. El reintento no cambia la versión pública hasta completar y validar una construcción.
 
 ## Construcción y activación
 
@@ -53,7 +58,7 @@ docker compose exec publisher node /app/cli.mjs list
 docker compose exec publisher node /app/cli.mjs rollback release-AAAAMMDDHHMMSS-COMMIT
 ```
 
-La publicación y el rollback comparten un bloqueo. El bloqueo identifica la instancia del proceso, por lo que se recupera cuando un contenedor reinicia reutilizando el PID. Un rollback activa únicamente una versión existente que supera la validación.
+La publicación y el rollback comparten un bloqueo. Sus metadatos completos se instalan mediante un hardlink exclusivo para evitar un archivo de bloqueo truncado si el proceso se interrumpe. El bloqueo identifica la instancia del proceso, por lo que se recupera cuando un contenedor reinicia reutilizando el PID. La recuperación se serializa para impedir que dos procesos eliminen el bloqueo nuevo del otro. Un bloqueo inválido de una versión anterior, o un archivo `publish.lock.recovery` dejado por una recuperación interrumpida, se conserva y requiere inspección local con el publicador detenido; no se elimina un bloqueo cuyo propietario pueda seguir vivo. Un rollback activa únicamente una versión existente que supera la validación.
 
 La inicialización se realiza con `node /app/bootstrap.mjs` y `PUBLISHER_SEED_PATH=/opt/seed`. Si existe `current`, conserva la versión instalada; si no, copia y valida el paquete inicial antes de activarlo como `release-seed`.
 
@@ -64,4 +69,4 @@ node --test ops/publisher/test/*.test.mjs
 docker run --rm --mount type=bind,source="$PWD",target=/workspace,readonly --workdir /workspace node:24-bookworm-slim node --test ops/publisher/test/*.test.mjs
 ```
 
-La suite cubre firmas alteradas, repositorio/rama, límites de cuerpo, duplicados persistentes, fallo de escritura de cola, concurrencia, recuperación de PID, publicación, conservación de la versión anterior y aislamiento de credenciales. Las pruebas de enlaces simbólicos se ejecutan completas en Linux; Windows sin privilegios de enlaces simbólicos informa esas dos pruebas como omitidas.
+La suite cubre firmas alteradas, repositorio/rama, límites de cuerpo, duplicados persistentes, fallo de escritura de cola, concurrencia, reintentos acotados y recuperación de su espera, redelivery después de agotamiento, recuperación de PID, adquisición y recuperación simultánea del bloqueo, publicación, conservación de la versión anterior y aislamiento de credenciales. Las pruebas de enlaces simbólicos se ejecutan completas en Linux; Windows sin privilegios de enlaces simbólicos informa esas dos pruebas como omitidas.

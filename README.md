@@ -23,6 +23,8 @@ Compose configura Nginx, broker OAuth, publicador y Caddy HTTPS. Un servicio de 
 
 El publicador verifica HMAC SHA-256, repositorio y rama, conserva los identificadores de entrega, serializa la cola y activa cada publicación mediante un enlace simbólico sustituido atómicamente. Si falla la construcción, mantiene la publicación anterior. Conserva cinco versiones y la semilla inicial. Los borradores de Decap usan ramas; publicar los incorpora a `main` y activa el webhook.
 
+Los fallos se reintentan hasta tres veces después del intento inicial, con esperas de 5, 10 y 20 segundos. La cola y los intentos sobreviven a reinicios. Si se agotan, una reentrega firmada del webhook permite reintentar el lote fallido. Las variables de `.env.example` permiten ajustar reintentos, tiempo de construcción y versiones conservadas; [operación del publicador](ops/publisher/README.md) detalla esos controles.
+
 ## Instalación en Linux
 
 Requisitos: Docker Engine con Compose, dominio apuntando al servidor y puertos 80/443 disponibles. Git, Python y Node de construcción están en los contenedores.
@@ -33,7 +35,13 @@ Requisitos: Docker Engine con Compose, dominio apuntando al servidor y puertos 8
 docker run --rm -v "$PWD:/app" -w /app node:24-bookworm-slim node ops/setup-secrets.mjs
 ```
 
-También sirve `node ops/setup-secrets.mjs` si existe Node 24. Crea `.env`, un secreto aleatorio de webhook y archivos vacíos para OAuth y token de lectura opcional. No inventa credenciales OAuth.
+También sirve `node ops/setup-secrets.mjs` si existe Node 24. Crea `.env`, un secreto aleatorio de webhook y archivos vacíos para OAuth y token de lectura opcional. No inventa credenciales OAuth. El comando Docker ejecuta el preparador como root y asigna las entradas nuevas a UID/GID `1000`, igual que los servicios: `secrets/` usa permisos `0700`; `.env` y los secretos, `0600`. Un operador Linux con UID `1000` puede abrir y editar estos archivos. Al usar Node local, ejecutarlo como ese usuario o ajustar la propiedad con root.
+
+El preparador conserva los valores, permisos y propietarios de entradas existentes. Si una instalación anterior dejó estos archivos bajo propiedad de root, corregir su propietario sin cambiar sus permisos ni contenido:
+
+```sh
+sudo chown 1000:1000 .env secrets secrets/github-client-secret secrets/github-webhook-secret secrets/github-read-token
+```
 
 2. Crear una **GitHub OAuth App**:
 
@@ -54,7 +62,7 @@ GITHUB_CLIENT_ID=client-id-real
 ACME_EMAIL=soluciones@creangel.com
 ```
 
-   Para varios editores, añadir cuentas reales separadas por comas. Todas necesitan permiso de escritura. `secrets/github-read-token` puede quedar vacío para este repositorio público; para lectura privada se utiliza un token limitado al repositorio. Los secretos son archivos locales excluidos de Git. En Linux deben poder ser leídos por UID/GID 1000; el preparador ajusta su propietario cuando se ejecuta como root y mantiene permisos 0600.
+   Para varios editores, añadir cuentas reales separadas por comas. Todas necesitan permiso de escritura. `secrets/github-read-token` puede quedar vacío para este repositorio público; para lectura privada se utiliza un token limitado al repositorio. Los secretos son archivos locales excluidos de Git. En Linux deben poder ser leídos por UID/GID `1000`; mantener sus permisos `0600` y la propiedad indicada en el paso de preparación.
 
 4. Configurar **Settings → Webhooks → Add webhook** en el repositorio:
 
@@ -80,7 +88,15 @@ El broker falla explícitamente si faltan credenciales. Caddy obtiene y renueva 
 docker compose -f compose.yaml -f compose.external-proxy.yaml up -d --build
 ```
 
-El override excluye Caddy y expone Nginx solo en `127.0.0.1:8080`. El proxy existente debe enviar el dominio público a esa dirección, incluyendo `/auth/` y `/publish/webhook`. OAuth conserva el origen HTTPS público.
+El override excluye Caddy y expone Nginx solo en `127.0.0.1:8080`. Añade una red bridge para que Docker pueda publicar ese puerto del host, manteniendo la red interna para los servicios. El proxy existente debe enviar el dominio público a esa dirección, incluyendo `/auth/` y `/publish/webhook`. OAuth conserva el origen HTTPS público.
+
+Usar ambos archivos también al actualizar o recrear servicios en esta modalidad. Por ejemplo, después de cambiar la lista de editores:
+
+```sh
+docker compose -f compose.yaml -f compose.external-proxy.yaml up -d --no-deps auth
+```
+
+Nginx consulta el DNS interno de Docker cada cinco segundos para detectar las nuevas direcciones de `auth` y `publisher` después de recrearlos.
 
 ## Uso y operación
 

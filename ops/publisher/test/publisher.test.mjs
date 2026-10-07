@@ -35,11 +35,12 @@ async function canCreateSymlinks(t, directory) {
   }
 }
 function sign(body) { return `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`; }
-async function api(t, maximum = 1024 * 1024) {
+async function api(t, maximum = 1024 * 1024, queueFactory) {
   const directory = await temporary(t);
   const store = new ReleaseStore(path.join(directory, 'releases'));
   const calls = [];
-  const queue = { async enqueue() { calls.push('publish'); }, status() { return { building: false, pending: false, lastResult: null }; } };
+  const queue = queueFactory ? queueFactory(directory, calls) : { async enqueue() { calls.push('publish'); }, status() { return { building: false, pending: false, lastResult: null }; } };
+  if (queue.close) t.after(() => queue.close());
   const config = { repository: 'castellanosfelipe/Landing-creangel', branch: 'main', maxBodyBytes: maximum };
   const server = createWebhookServer({ config, secret, ledger: new DeliveryLedger(path.join(directory, 'deliveries.json')), queue, releases: store, logger: silent });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -50,8 +51,9 @@ async function api(t, maximum = 1024 * 1024) {
     const response = await fetch(`${origin}/publish/webhook`, { method: 'POST', headers: { 'Content-Type': contentType, 'X-Hub-Signature-256': signature ?? sign(body), 'X-GitHub-Delivery': id, 'X-GitHub-Event': event }, body });
     return { status: response.status, body: await response.json() };
   };
-  return { request, calls, origin, directory, store };
+  return { request, calls, origin, directory, store, queue };
 }
+function clearScheduled(queue) { clearTimeout(queue.timer); queue.timer = null; }
 
 test('GitHub official HMAC example and malformed signatures', () => {
   assert.equal(signatureIsValid(Buffer.from('Hello, World!'), 'sha256=757107ea0eb2509fc211221cce984b8a37570b6d7586c22c46f4379c8b043e17', "It's a Secret to Everybody"), true);
@@ -132,21 +134,125 @@ test('queue coalesces requests and never runs builds concurrently', async t => {
   await queue.drain();
   assert.equal(runs, 2);
   assert.equal(maximum, 1);
-  assert.deepEqual(await readJson(path.join(directory, 'queue.json')), { pending: false });
+  const saved = await readJson(path.join(directory, 'queue.json'));
+  assert.equal(saved.pending, false);
+  assert.equal(saved.activeWork, null);
+  assert.equal(saved.lastResult.status, 'success');
 });
 
 test('pending queue restores after restart and records failure safely', async t => {
   const directory = await temporary(t);
   const filename = path.join(directory, 'queue.json');
   await fs.writeFile(filename, JSON.stringify({ pending: true }));
-  const queue = new PublishQueue({ filename, debounceMs: 10000, logger: silent, run: async () => { throw new Error('build failed'); } });
+  const queue = new PublishQueue({ filename, debounceMs: 10000, maxRetries: 0, logger: silent, run: async () => { throw new Error('build failed'); } });
   t.after(() => queue.close());
   await queue.restore();
   clearTimeout(queue.timer); queue.timer = null;
   assert.equal(queue.pending, true);
   await queue.drain();
   assert.equal(queue.status().lastResult.status, 'failed');
-  assert.deepEqual(await readJson(filename), { pending: false });
+  const saved = await readJson(filename);
+  assert.equal(saved.pending, false);
+  assert.equal(saved.activeWork, null);
+  assert.equal(saved.lastResult.status, 'failed');
+});
+
+test('retry delay and attempt count survive restart, and a later successful attempt clears work', async t => {
+  const directory = await temporary(t);
+  const filename = path.join(directory, 'queue.json');
+  let time = 0; let runs = 0;
+  const options = { filename, debounceMs: 10000, maxRetries: 3, retryBaseMs: 10000, retryMaxMs: 15000, now: () => time, logger: silent,
+    run: async () => { if (++runs < 4) throw new Error('temporary failure'); return 'release-success'; } };
+  const first = new PublishQueue(options);
+  t.after(() => first.close());
+  const workId = await first.enqueue();
+  clearScheduled(first);
+  await first.drain();
+  assert.equal(runs, 1);
+  assert.equal(first.status().pending, true, 'health must reflect the scheduled retry');
+  assert.deepEqual((await readJson(filename)).activeWork, { id: workId, failures: 1, nextAttemptAt: 10000 });
+  first.close();
+  const restored = new PublishQueue(options);
+  t.after(() => restored.close());
+  await restored.restore();
+  assert.equal(restored.lastResult.status, 'retrying');
+  clearScheduled(restored);
+  await restored.drain();
+  assert.equal(runs, 1, 'restart must retain the remaining wait');
+  for (const [at, count, next] of [[10000, 2, 25000], [25000, 3, 40000]]) {
+    time = at; clearScheduled(restored); await restored.drain();
+    const saved = await readJson(filename);
+    assert.equal(runs, count);
+    assert.equal(saved.activeWork.failures, count);
+    assert.equal(saved.activeWork.nextAttemptAt, next);
+  }
+  time = 40000; clearScheduled(restored); await restored.drain();
+  assert.equal(runs, 4);
+  assert.equal(restored.lastResult.status, 'success');
+  assert.equal(restored.lastResult.attempts, 4);
+  assert.equal((await readJson(filename)).activeWork, null);
+  assert.equal(restored.canRetry(workId), false);
+});
+
+test('exhausted work survives restart and only its authenticated redelivery can retry', async t => {
+  let secondStarted; let finishSecond;
+  const started = new Promise(resolve => { secondStarted = resolve; });
+  const finish = new Promise(resolve => { finishSecond = resolve; });
+  const fixture = await api(t, 1024 * 1024, (directory, calls) => new PublishQueue({
+    filename: path.join(directory, 'queue.json'), debounceMs: 10000, maxRetries: 0, logger: silent,
+    run: async () => {
+      calls.push('publish');
+      if (calls.length === 1 || calls.length === 3) throw new Error('temporary failure');
+      if (calls.length === 2) { secondStarted(); await finish; }
+      return `release-${calls.length}`;
+    },
+  }));
+  const { request, queue, calls } = fixture;
+  assert.equal((await request()).status, 202);
+  assert.deepEqual(await request(), { status: 200, body: { duplicate: true } });
+  clearScheduled(queue); await queue.drain();
+  const workId = queue.lastResult.workId;
+  const restored = new PublishQueue({ filename: queue.filename, logger: silent, run: async () => { throw new Error('unexpected build'); } });
+  t.after(() => restored.close());
+  await restored.restore();
+  assert.equal(restored.canRetry(workId), true);
+  assert.equal((await request({ signature: `sha256=${'0'.repeat(64)}` })).status, 401);
+  assert.equal((await request()).status, 202);
+  assert.deepEqual(await request(), { status: 200, body: { duplicate: true } });
+  clearScheduled(queue);
+  const building = queue.drain();
+  await started;
+  assert.deepEqual(await request(), { status: 200, body: { duplicate: true } });
+  finishSecond(); await building;
+  assert.deepEqual(await request(), { status: 200, body: { duplicate: true } });
+  assert.equal(calls.length, 2);
+  assert.equal((await request({ id: 'later-failure' })).status, 202);
+  clearScheduled(queue); await queue.drain();
+  assert.equal(queue.lastResult.status, 'failed');
+  assert.deepEqual(await request(), { status: 200, body: { duplicate: true } }, 'an older successful delivery must stay deduplicated');
+  assert.equal((await request({ id: 'later-failure' })).status, 202);
+  clearScheduled(queue); await queue.drain();
+  assert.equal(calls.length, 4);
+  assert.equal(queue.lastResult.status, 'success');
+});
+
+test('configured retries are bounded and exhaustion schedules no additional attempt', async t => {
+  const directory = await temporary(t);
+  let time = 0; let runs = 0;
+  const queue = new PublishQueue({ filename: path.join(directory, 'queue.json'), debounceMs: 10000,
+    maxRetries: 1, retryBaseMs: 10000, now: () => time, logger: silent,
+    run: async () => { runs++; throw new Error('permanent failure'); } });
+  t.after(() => queue.close());
+  const workId = await queue.enqueue();
+  clearScheduled(queue); await queue.drain();
+  time = 10000; clearScheduled(queue); await queue.drain();
+  assert.equal(runs, 2);
+  assert.equal(queue.timer, null);
+  assert.equal(queue.lastResult.status, 'failed');
+  assert.equal(queue.lastResult.attempts, 2);
+  assert.equal(queue.canRetry(workId), true);
+  await queue.drain();
+  assert.equal(runs, 2);
 });
 
 test('publication activates a relative link atomically and failure retains old release', async t => {
@@ -210,6 +316,63 @@ test('publication lock recovers after a container restart reuses the same PID', 
   await lock.acquire();
   assert.notEqual((await readJson(filename)).processIdentity, 'previous-container-process');
   await lock.release();
+});
+
+test('lock metadata is complete before the exclusive lock becomes visible', async t => {
+  const directory = await temporary(t);
+  const filename = path.join(directory, 'publish.lock');
+  const lock = new PublicationLock(filename);
+  let inspectStarted; let completeIdentity;
+  const started = new Promise(resolve => { inspectStarted = resolve; });
+  const identity = new Promise(resolve => { completeIdentity = resolve; });
+  lock.identity = async () => { inspectStarted(); return identity; };
+  const acquiring = lock.acquire();
+  await started;
+  await assert.rejects(fs.access(filename), { code: 'ENOENT' });
+  completeIdentity('complete-process-identity');
+  await acquiring;
+  assert.equal((await readJson(filename)).processIdentity, 'complete-process-identity');
+  assert.deepEqual(await fs.readdir(directory), ['publish.lock']);
+  await lock.release();
+});
+
+test('simultaneous lock acquisition grants one owner and preserves invalid existing locks', async t => {
+  const directory = await temporary(t);
+  const filename = path.join(directory, 'publish.lock');
+  const locks = [new PublicationLock(filename), new PublicationLock(filename)];
+  const outcomes = await Promise.allSettled(locks.map(lock => lock.acquire()));
+  assert.equal(outcomes.filter(item => item.status === 'fulfilled').length, 1);
+  assert.equal(outcomes.filter(item => item.status === 'rejected').length, 1);
+  assert.equal((await readJson(filename)).pid, process.pid);
+  await locks[outcomes.findIndex(item => item.status === 'fulfilled')].release();
+  await fs.writeFile(filename, '{incomplete');
+  await assert.rejects(new PublicationLock(filename).acquire(), /lock already exists/);
+  assert.equal(await fs.readFile(filename, 'utf8'), '{incomplete');
+  assert.deepEqual(await fs.readdir(directory), ['publish.lock']);
+});
+
+test('simultaneous stale-lock recovery grants one owner and does not unlink its live lock', async t => {
+  const directory = await temporary(t);
+  const filename = path.join(directory, 'publish.lock');
+  await fs.writeFile(filename, JSON.stringify({ pid: process.pid, processIdentity: 'previous-process' }));
+  const locks = [new PublicationLock(filename), new PublicationLock(filename)];
+  const outcomes = await Promise.allSettled(locks.map(lock => lock.acquire()));
+  assert.equal(outcomes.filter(item => item.status === 'fulfilled').length, 1);
+  assert.equal(outcomes.filter(item => item.status === 'rejected').length, 1);
+  assert.notEqual((await readJson(filename)).processIdentity, 'previous-process');
+  assert.deepEqual(await fs.readdir(directory), ['publish.lock']);
+  await locks[outcomes.findIndex(item => item.status === 'fulfilled')].release();
+});
+
+test('an interrupted recovery marker is preserved rather than deleting a possible live owner', async t => {
+  const directory = await temporary(t);
+  const filename = path.join(directory, 'publish.lock');
+  const stale = JSON.stringify({ pid: process.pid, processIdentity: 'previous-process' });
+  await fs.writeFile(filename, stale);
+  await fs.writeFile(`${filename}.recovery`, '{unknown-owner');
+  await assert.rejects(new PublicationLock(filename).acquire(), /recovery already exists/);
+  assert.equal(await fs.readFile(filename, 'utf8'), stale);
+  assert.equal(await fs.readFile(`${filename}.recovery`, 'utf8'), '{unknown-owner');
 });
 
 test('Git builder uses fixed argument arrays and withholds Git credentials from npm', async t => {
