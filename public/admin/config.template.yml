@@ -24,6 +24,8 @@ collections:
     slug: '{{fields.id}}'
     identifier_field: id
     summary: '{{title}}'
+    preview_path: 'documentacion/{{fields.slug}}'
+    preview_path_preserve_slashes: true
     fields:
       - label: Identificador permanente
         name: id
@@ -39,7 +41,7 @@ collections:
       - label: Ruta del documento
         name: slug
         widget: string
-        hint: Use / para la introducción o una ruta como /productos/ifindit-search. Conserve la ruta de los documentos existentes.
+        hint: Use / para la introducción o una ruta como /productos/ifindit-search. El prefijo /en está reservado para el idioma inglés. Conserve la ruta de los documentos existentes.
         pattern:
           - '^/(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*)?$'
           - 'Use una ruta con letras minúsculas sin acentos, números, guiones y barras.'
@@ -51,7 +53,7 @@ collections:
   - name: documentation_en
     label: Documentation · English
     label_singular: English document
-    description: Public IFINDIT documentation in English. Saving prepares the updated publication.
+    description: Public IFINDIT documentation in English. Create the Spanish original first, then use the same identifier and route for its English translation.
     folder: documentation/i18n/en/docusaurus-plugin-content-docs/current
     create: true
     delete: false
@@ -60,6 +62,8 @@ collections:
     slug: '{{fields.id}}'
     identifier_field: id
     summary: '{{title}}'
+    preview_path: 'documentacion/en/{{fields.slug}}'
+    preview_path_preserve_slashes: true
     fields:
       - label: Permanent identifier
         name: id
@@ -75,7 +79,7 @@ collections:
       - label: Document route
         name: slug
         widget: string
-        hint: Use / for the introduction. Keep the same filename and route as the corresponding Spanish document.
+        hint: Use / for the introduction. The /en prefix is reserved for the English site. Keep the same filename and route as the corresponding Spanish document.
         pattern:
           - '^/(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*)?$'
           - 'Use lowercase unaccented letters, numbers, hyphens and slashes.'

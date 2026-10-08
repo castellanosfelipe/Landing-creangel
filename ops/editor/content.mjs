@@ -1,6 +1,9 @@
 import {promises as fs} from 'node:fs';
 import path from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
+import YAML from 'yaml';
+import {Scalar,YAMLMap} from 'yaml/types';
+import {fromMarkdown} from 'mdast-util-from-markdown';
 import {fail} from './security.mjs';
 import {markdownImages} from './markdown-images.mjs';
 const folders=['documentation/docs','documentation/i18n/en/docusaurus-plugin-content-docs/current'];
@@ -30,22 +33,71 @@ export class Content {
   metadata(raw,{validateBody=true}={}) {
     const front=/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(raw);
     if(!front)fail(400,'El documento debe conservar sus metadatos iniciales.');
-    const values={};
-    for(const line of front[1].split(/\r?\n/)) {
-      if(!line.trim()||/^\s/.test(line))continue;
-      const match=/^([a-z_]+):\s*(.*)$/.exec(line);
-      if(!match||!['id','title','description','sidebar_position','slug'].includes(match[1])||Object.hasOwn(values,match[1]))fail(400,'Metadatos de documento inválidos.');
-      let value=match[2].trim();
-      if(value.startsWith('"')) {try {value=JSON.parse(value);}catch {fail(400,'Metadatos de documento inválidos.');}}
-      else if(value.startsWith("'")) {if(!value.endsWith("'"))fail(400,'Metadatos inválidos.');value=value.slice(1,-1).replaceAll("''","'");}
-      else if(/[{}\[\]!&*]/.test(value))fail(400,'Metadatos de documento inválidos.');
-      values[match[1]]=value;
+    // Decap serializes wrapped and multiline YAML. Inspect its syntax tree before
+    // converting values so normal punctuation is accepted without allowing tags,
+    // aliases, nested objects, duplicate fields or implicit non-string content.
+    const document=YAML.parseDocument(front[1],{version:'1.2',schema:'core',customTags:[],prettyErrors:false});
+    if(document.errors.length||document.warnings.length||!(document.contents instanceof YAMLMap)||document.contents.tag||document.anchors.getNames().length)fail(400,'Metadatos de documento inválidos.');
+    const values=Object.create(null);
+    for(const pair of document.contents.items) {
+      const key=pair.key,value=pair.value;
+      if(!(key instanceof Scalar)||key.tag||!(value instanceof Scalar)||value.tag||!['id','title','description','sidebar_position','slug'].includes(key.value)||Object.hasOwn(values,key.value))fail(400,'Metadatos de documento inválidos.');
+      values[key.value]=value.value;
     }
-    if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(values.id||'')||!/^\/(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*)?$/.test(values.slug||'')||!values.title||!values.description||!/^\d+$/.test(String(values.sidebar_position)))fail(400,'Identificador, ruta, título, descripción u orden inválido.');
-    // Docusaurus treats Markdown as content. Disallow executable MDX/HTML and unsafe URL schemes.
-    const body=raw.slice(front[0].length).replace(/(^|\n)\s*(```|~~~)[^\n]*\n[\s\S]*?\n\s*\2[^\n]*/g,'');
-    if(validateBody&&/(^|\n)\s*(?:import|export)\s|<\/?[A-Za-z!]|\b(?:javascript|data|vbscript)\s*:/i.test(body))fail(400,'Use texto Markdown; no se permite código ejecutable ni HTML.');
+    if(['id','title','description','slug'].some(key=>typeof values[key]!=='string'||!values[key].trim())||!Number.isSafeInteger(values.sidebar_position)||values.sidebar_position<1||!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(values.id)||!/^\/(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*)?$/.test(values.slug))fail(400,'Identificador, ruta, título, descripción u orden inválido.');
+    // The English site is published under /documentacion/en/. A Spanish route
+    // beginning with /en would otherwise overwrite that locale's generated files.
+    if(/^\/en(?:\/|$)/.test(values.slug))fail(400,'El prefijo /en está reservado para la versión en inglés. Elija otra ruta para el documento.');
+    if(validateBody) {
+      const body=raw.slice(front[0].length),examples=[];
+      const unsafe=()=>fail(400,'Use texto Markdown; no se permite código ejecutable ni HTML.');
+      function visit(node) {
+        if(['code','inlineCode'].includes(node.type)){examples.push([node.position.start.offset,node.position.end.offset]);return;}
+        if(node.type==='html'||(typeof node.url==='string'&&/^(?:javascript|data|vbscript):/i.test(node.url.replace(/[\u0000-\u0020]/g,''))))unsafe();
+        for(const child of node.children||[])visit(child);
+      }
+      visit(fromMarkdown(body));
+      let prose=body;
+      for(const [start,end] of examples.sort((a,b)=>b[0]-a[0]))prose=prose.slice(0,start)+prose.slice(start,end).replace(/[^\r\n]/g,' ')+prose.slice(end);
+      if(/(^|\n)\s*(?:import|export)\s/.test(prose))unsafe();
+    }
     return values;
+  }
+  async validateRoute(name,next) {
+    const folder=path.posix.dirname(name),basename=path.posix.basename(name);
+    const documents=await Promise.all(folders.map(async directory=>{
+      const entries=[];
+      for(const other of await fs.readdir(path.join(this.root,directory))) {
+        if(!/^[a-z0-9]+(?:-[a-z0-9]+)*\.md$/.test(other))continue;
+        const filename=await this.safe(directory+'/'+other);
+        entries.push([other,this.metadata(await fs.readFile(filename,'utf8'),{validateBody:false})]);
+      }
+      return new Map(entries);
+    }));
+    const [spanish,english]=documents;
+    if(folder===folders[1]) {
+      const original=spanish.get(basename);
+      // Docusaurus discovers files in its default locale, then substitutes a
+      // translation with the same filename. An English-only file is never built.
+      if(!original)fail(409,'Cree primero el documento en español con el mismo identificador para poder publicar su traducción al inglés.');
+      if(original.id!==next.id||original.slug!==next.slug)fail(409,'La traducción debe conservar el mismo identificador y ruta del documento en español.');
+      english.set(basename,next);
+    } else {
+      const translation=english.get(basename);
+      if(translation&&(translation.id!==next.id||translation.slug!==next.slug))fail(409,'El identificador y la ruta deben coincidir con la versión en inglés existente.');
+      spanish.set(basename,next);
+    }
+    const unique=(entries,language)=>{
+      const used=new Set();
+      for(const entry of entries) {
+        if(used.has(entry.slug))fail(409,`La ruta ya está usada por otro documento en ${language}. Elija una ruta diferente antes de guardar.`);
+        used.add(entry.slug);
+      }
+    };
+    unique(documents[folders.indexOf(folder)].values(),folder===folders[0]?'español':'inglés');
+    // Untranslated Spanish files are also published in English. Include them
+    // when checking routes so a new save cannot break the English build.
+    unique([...spanish].map(([filename,entry])=>english.get(filename)||entry),'inglés');
   }
   async validateImages(raw,assets) {
     for(const url of markdownImages(raw)) {
@@ -126,6 +178,7 @@ export class Content {
           const previous=this.metadata(await fs.readFile(filename,'utf8'),{validateBody:false});
           if(previous.id!==next.id||previous.slug!==next.slug)fail(409,'No cambie el identificador ni la ruta de un documento existente.');
         } catch(error) {if(error.code!=='ENOENT')throw error;}
+        await this.validateRoute(file.path,next);
         prepared.push({filename,data:file.raw,name:file.path});
       }
       for(const asset of assets)prepared.push({filename:await this.safe(asset.path,'media'),data:this.mediaBytes(asset),name:asset.path});
