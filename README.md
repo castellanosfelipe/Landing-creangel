@@ -10,7 +10,7 @@ Se conservan las 120 páginas comerciales ES/EN, cinco productos, LakeHouse, Aut
 |---|---|
 | `/` y `/en/` | Portal comercial |
 | `/documentacion/` y `/documentacion/en/` | Documentación ES/EN |
-| `/admin/login.html` | Inicio de sesión con usuario y contraseña del portal |
+| `/admin/login.html` | Inicio de sesión con usuario, contraseña y CAPTCHA local |
 | `/admin/` | Editor de documentación e imágenes |
 | `/admin/users/` | Administración de usuarios y contraseña propia |
 | `/local/status` | Estado de la última construcción, sin credenciales |
@@ -20,6 +20,8 @@ El administrador inicial se llama `admin`, salvo que se cambie `INITIAL_ADMIN_US
 Desde **Administrar usuarios**, un administrador puede crear varios editores o administradores, cambiar nombre y rol, desactivar/reactivar cuentas, restablecer contraseñas y consultar los últimos 100 eventos. Cada contraseña inicial o restablecida debe cambiarse al acceder. No existe autorregistro público. Los editores solo pueden editar documentación/imágenes y cambiar su propia contraseña; la API también aplica estos permisos. Se impide desactivar o degradar la propia cuenta administradora o el último administrador activo.
 
 Desactivar una cuenta, cambiar su rol o restablecer su contraseña revoca sus sesiones. Las sesiones expiran a las ocho horas, usan cookies HttpOnly y SameSite Strict, con Secure en producción HTTPS. Las contraseñas se almacenan con scrypt y sal individual; no se guardan contraseñas ni tokens de sesión en el navegador. Las escrituras exigen sesión, origen autorizado y token CSRF. Se limitan los intentos de acceso fallidos.
+
+El inicio de sesión también exige escribir los cinco caracteres de una imagen CAPTCHA generada por el propio servidor. Se puede solicitar **Otro código** si no es legible. Cada desafío vence a los cinco minutos, queda vinculado al navegador y se consume al intentar acceder; el servidor verifica la respuesta antes de comprobar la contraseña. La imagen se renueva tras un intento fallido. No se usan Google reCAPTCHA, cuentas externas ni claves de un proveedor. Este control complementa los límites de intentos y no cambia las cuentas o contraseñas existentes.
 
 ## Instalación en producción
 
@@ -57,7 +59,7 @@ Si ya existe proxy HTTPS:
 docker compose -f compose.yaml -f compose.external-proxy.yaml up -d --build --wait
 ```
 
-El override omite Caddy y expone Nginx únicamente en `127.0.0.1:8080`. El proxy existente debe enviar **todas** las rutas, incluida `/api/`, al mismo sitio. Mantener `PUBLIC_SITE_URL` igual al origen HTTPS que usa el navegador; no permitir CORS abierto. Los puertos de editor y constructor no se exponen al host.
+El override omite Caddy y expone Nginx únicamente en `127.0.0.1:8080`. El proxy existente debe enviar **todas** las rutas, incluida `/api/`, al mismo sitio y sobrescribir `X-Real-IP` con la IP del cliente (en Nginx: `proxy_set_header X-Real-IP $remote_addr;`). Así, los límites de acceso y CAPTCHA se aplican por cliente, en lugar de compartir la IP del proxy. No reenviar esta cabecera suministrada por el visitante ni exponer el puerto privado de `web` públicamente. Caddy ya realiza esta sustitución en la configuración incluida. Mantener `PUBLIC_SITE_URL` igual al origen HTTPS que usa el navegador; no permitir CORS abierto. Los puertos de editor y constructor no se exponen al host.
 
 ## Publicación
 
@@ -111,7 +113,7 @@ npm test
 npm run build:production -- --output _site --base-url https://portal.creangel.com
 ```
 
-Fuera de Docker se requieren Node 24 y Python 3 (`PYTHON` permite indicar su ejecutable). Las pruebas verifican autenticación, CSRF, roles, revocación, persistencia, rutas autorizadas y conservación de la publicación ante fallos. Un servidor HTTP estático sirve las páginas exportadas pero no sustituye la API de edición.
+Fuera de Docker se requieren Node 24 y Python 3 (`PYTHON` permite indicar su ejecutable). Las pruebas verifican CAPTCHA (caducidad, uso único, vinculación al navegador y validación en el servidor), autenticación, CSRF, roles, revocación, persistencia, rutas autorizadas y conservación de la publicación ante fallos. Un servidor HTTP estático sirve las páginas exportadas pero no sustituye la API de edición.
 
 ## SEO y diseño
 

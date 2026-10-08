@@ -7,7 +7,14 @@
 <p id="message" role="status" aria-live="polite"></p>
 <form id="login-form"><label>Usuario<input name="username" autocomplete="username" required maxlength="64" autofocus></label>
 <label>Contraseña<input name="password" type="password" autocomplete="current-password" required maxlength="128"></label>
-<button type="submit">Iniciar sesión</button></form>
+<div class="captcha-panel" id="captcha-panel" aria-busy="true">
+<label for="captcha-answer">Código de verificación</label>
+<div class="captcha-image-row"><div class="captcha-image-frame"><img id="captcha-image" alt="Código de verificación de cinco caracteres" draggable="false" hidden></div>
+<button type="button" class="secondary captcha-refresh" id="captcha-refresh" aria-label="Generar otro código de verificación" disabled><span aria-hidden="true">↻</span> Otro código</button></div>
+<input id="captcha-answer" name="captchaAnswer" autocomplete="off" autocapitalize="characters" spellcheck="false" minlength="5" maxlength="5" pattern="[A-Za-z0-9]{5}" title="Escriba los cinco caracteres de la imagen" aria-describedby="captcha-hint captcha-status" required>
+<p class="hint" id="captcha-hint">Escriba los 5 caracteres de la imagen. Puede usar mayúsculas o minúsculas.</p>
+<p class="hint captcha-status" id="captcha-status" role="status" aria-live="polite">Preparando el código de verificación…</p></div>
+<button type="submit" disabled>Iniciar sesión</button></form>
 <form id="password-form" hidden><label>Nueva contraseña<input name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label>
 <label>Confirmar contraseña<input name="confirmation" type="password" autocomplete="new-password" minlength="12" maxlength="128" required></label>
 <p class="hint">Use al menos 12 caracteres. Esta contraseña reemplazará la contraseña inicial.</p><button type="submit">Cambiar contraseña y continuar</button></form>

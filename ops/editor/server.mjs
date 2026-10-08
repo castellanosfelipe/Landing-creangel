@@ -2,20 +2,37 @@ import {createServer} from 'node:http';
 import {pathToFileURL} from 'node:url';
 import {Store,publicUser} from './store.mjs';
 import {Content} from './content.mjs';
+import {Captcha} from './captcha.mjs';
 import {token,digest,origin,fail,hashPassword,verifyPassword} from './security.mjs';
 
 export function configuration(env=process.env) {
   return {origin:origin(env.PUBLIC_SITE_URL||'https://portal.creangel.com'),database:env.EDITOR_DATABASE||'/var/lib/editor/editor.sqlite',contentRoot:env.CONTENT_ROOT||'/workspace',adminUsername:env.INITIAL_ADMIN_USERNAME||'admin',passwordFile:env.INITIAL_ADMIN_PASSWORD_FILE,port:Number(env.EDITOR_PORT||8081)};
 }
-export async function createEditorServer(config) {
+export async function createEditorServer(config,{captchaGenerator}={}) {
   const store=new Store(config.database);
   await store.bootstrap(config.adminUsername,config.passwordFile);
   const content=new Content(config.contentRoot,store.audit.bind(store),config.origin);
   const cookieName=config.origin.startsWith('https:')?'__Host-creangel-session':'creangel_session';
+  const captchaCookieName=config.origin.startsWith('https:')?'__Host-creangel-captcha':'creangel_captcha';
+  const captcha=new Captcha(store.db,{generator:captchaGenerator});
   const dummy=await hashPassword(token());
   const hours=8*3600;
+  function appendCookie(response,value) {
+    const existing=response.getHeader('Set-Cookie');
+    response.setHeader('Set-Cookie',[...(Array.isArray(existing)?existing:existing?[existing]:[]),value]);
+  }
   function cookie(response,value,age=hours) {
-    response.setHeader('Set-Cookie',`${cookieName}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}${config.origin.startsWith('https:')?'; Secure':''}`);
+    appendCookie(response,`${cookieName}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}${config.origin.startsWith('https:')?'; Secure':''}`);
+  }
+  function captchaCookie(response,value,age=300) {
+    appendCookie(response,`${captchaCookieName}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}${config.origin.startsWith('https:')?'; Secure':''}`);
+  }
+  function challengeId(request) {
+    const matches=(request.headers.cookie||'').split(';').map(part=>part.trim()).filter(part=>part.startsWith(captchaCookieName+'='));
+    return matches.length===1?matches[0].slice(captchaCookieName.length+1):undefined;
+  }
+  function clientBinding(request) {
+    return String(request.headers['x-real-ip']||request.socket.remoteAddress);
   }
   function startSession(response,row) {
     const id=token(),csrfToken=token();
@@ -42,20 +59,30 @@ export async function createEditorServer(config) {
     for await(const part of request){size+=part.length;if(size>max)fail(413,'La solicitud es demasiado grande.');parts.push(part);}
     try {const parsed=JSON.parse(Buffer.concat(parts).toString('utf8'));if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error();return parsed;}catch {fail(400,'Solicitud inválida.');}
   }
-  function throttleKey(request,username) {return digest(`${request.headers['x-real-ip']||request.socket.remoteAddress}\0${username}`);}
+  function throttleKey(request,username) {return digest(`${clientBinding(request)}\0${username}`);}
   async function login(request,response) {
     const values=await body(request);
     const username=String(values.username||'').trim().toLowerCase().slice(0,64);
     const key=throttleKey(request,username);
     const now=Date.now();
+    const challenge=challengeId(request);
+    captchaCookie(response,'',0);
+    // Bound anonymous requests too; rotating usernames must not flood the audit/database.
+    try {captcha.throttleLogin(clientBinding(request));}
+    catch(error){captcha.invalidate(challenge);throw error;}
     store.db.prepare('DELETE FROM attempts WHERE until_at<?').run(now);
     const prior=store.db.prepare('SELECT * FROM attempts WHERE key=?').get(key);
-    if(prior?.count>=6){response.setHeader('Retry-After',Math.ceil((prior.until_at-now)/1000));fail(429,'Demasiados intentos. Espere unos minutos antes de volver a intentar.');}
+    if(prior?.count>=6){captcha.invalidate(challenge);response.setHeader('Retry-After',Math.ceil((prior.until_at-now)/1000));fail(429,'Demasiados intentos. Espere unos minutos antes de volver a intentar.');}
+    function failedAttempt(action='inicio_fallido') {
+      store.db.prepare('INSERT INTO attempts(key,count,until_at) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1').run(key,now+10*60*1000);
+      store.audit('acceso',action,username);
+    }
+    try {captcha.consume(challenge,values.captchaAnswer,clientBinding(request));}
+    catch(error) {if(error.status===400)failedAttempt('captcha_fallido');throw error;}
     const row=store.byName(username);
     const correct=await verifyPassword(values.password,row?.password_hash||dummy);
     if(!row||!row.active||!correct) {
-      store.db.prepare('INSERT INTO attempts(key,count,until_at) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1').run(key,now+10*60*1000);
-      store.audit('acceso','inicio_fallido',username);
+      failedAttempt();
       fail(401,'Usuario o contraseña incorrectos.');
     }
     store.db.prepare('DELETE FROM attempts WHERE key=?').run(key);
@@ -70,6 +97,12 @@ export async function createEditorServer(config) {
       const url=new URL(request.url,config.origin);
       if(url.origin!==config.origin)fail(400,'Solicitud inválida.');
       if(request.method==='GET'&&url.pathname==='/api/health')return reply(response,200,{status:'ok'});
+      if(request.method==='GET'&&url.pathname==='/api/captcha') {
+        if((request.headers.origin&&request.headers.origin!==config.origin)||request.headers['sec-fetch-site']==='cross-site')fail(403,'Origen de solicitud no autorizado.');
+        const {id,image,expiresAt}=await captcha.issue(clientBinding(request),challengeId(request));
+        captchaCookie(response,id);
+        return reply(response,200,{image,expiresAt});
+      }
       if(request.method==='POST'&&url.pathname==='/api/login')return await login(request,response);
       const {record,row}=session(request);
       if(request.method==='GET'&&url.pathname==='/api/session')return reply(response,200,{user:publicUser(row),csrfToken:record.csrf});
@@ -111,6 +144,7 @@ export async function createEditorServer(config) {
       }
       fail(404,'Operación no encontrada.');
     } catch(error) {
+      if(error.retryAfter)response.setHeader('Retry-After',error.retryAfter);
       if(!response.headersSent)reply(response,error.status||500,{error:error.status?error.message:'No se pudo completar la operación.'});
       else response.end();
     }

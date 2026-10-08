@@ -13,6 +13,8 @@ docker compose -f compose.local.yaml up -d --build --remove-orphans --wait
 
 Usuario inicial: `admin`; contraseña inicial: archivo privado `secrets/editor-admin-password`. Hay que cambiarla al acceder por primera vez. Si ya se cambió, utilizar la nueva contraseña; recrear los servicios no la restablece. Administradores gestionan usuarios desde el panel, editores no pueden crear ni alterar otras cuentas.
 
+Para iniciar sesión, completar también los cinco caracteres del CAPTCHA. **Otro código** permite cambiarlo; vence a los cinco minutos y se renueva después de cada intento fallido. La generación y validación son locales, sin servicios externos, igual que en producción.
+
 Volúmenes independientes `creangel-local_workspace`, `creangel-local_editor_data` y `creangel-local_releases` conservan contenido, cuentas y versiones. La migración del anterior proxy sin contraseña preserva documentos e imágenes, sustituye el panel y deshabilita `/cms-proxy/`. No requiere ninguna cuenta externa ni commits/push/webhooks. Guardar en Decap inicia la construcción y la publicación local; un fallo deja activa la versión anterior.
 
 ```sh

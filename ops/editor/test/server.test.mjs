@@ -12,6 +12,9 @@ const initial='Initial-test-password-2026!';
 const changed='Changed-test-password-2026!';
 const editorInitial='Editor-test-password-2026!';
 const editorChanged='Editor-changed-password-2026!';
+// Synthetic challenges exercise authentication without solving real browser CAPTCHAs.
+const captchaAnswer='AB234';
+const captchaGenerator=()=>({answer:captchaAnswer,svg:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 80"><path d="M5 5L20 20"/></svg>'});
 const documentPath='documentation/docs/overview.md';
 const markdown='---\nid: overview\ntitle: Overview\ndescription: Product documentation\nsidebar_position: 1\nslug: /\n---\n\n# Overview\n\nOriginal content.\n';
 async function fixture(t) {
@@ -22,16 +25,25 @@ async function fixture(t) {
   await fs.writeFile(path.join(root,documentPath),markdown);
   await fs.writeFile(path.join(root,'initial-password'),initial);
   const config={origin:'http://127.0.0.1:8785',database:path.join(root,'data/accounts.sqlite'),contentRoot:root,adminUsername:'admin',passwordFile:path.join(root,'initial-password')};
-  const {server,store}=await createEditorServer(config);
+  const {server,store}=await createEditorServer(config,{captchaGenerator});
   server.listen(0,'127.0.0.1');await once(server,'listening');
   const base=`http://127.0.0.1:${server.address().port}`;
   t.after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await fs.rm(root,{recursive:true,force:true});});
   async function request(url,{method='GET',data,session,headers={}}={}) {
     const response=await fetch(base+url,{method,headers:{...(data?{'Content-Type':'application/json',Origin:config.origin}:{}),...(session?{Cookie:session.cookie,'X-CSRF-Token':session.csrfToken}:{}),...headers},body:data?JSON.stringify(data):undefined});
     const body=await response.json();
-    return {status:response.status,body,headers:response.headers,cookie:response.headers.get('set-cookie')?.split(';')[0],csrfToken:body.csrfToken};
+    const cookies=response.headers.getSetCookie().map(value=>value.split(';')[0]);
+    return {status:response.status,body,headers:response.headers,cookies,cookie:cookies.find(value=>/^creangel_session=.+/.test(value)),csrfToken:body.csrfToken};
   }
-  async function login(username,password) {return request('/api/login',{method:'POST',data:{username,password}});}
+  async function challenge() {
+    const result=await request('/api/captcha');
+    assert.equal(result.status,200);
+    return {...result,cookie:result.cookies.find(value=>/^creangel_captcha=.+/.test(value))};
+  }
+  async function login(username,password) {
+    const captcha=await challenge();
+    return request('/api/login',{method:'POST',data:{username,password,captchaAnswer},headers:{Cookie:captcha.cookie}});
+  }
   async function readyAdmin() {
     const session=await login('admin',initial);assert.equal(session.status,200);
     const next=await request('/api/password',{method:'POST',session,data:{currentPassword:initial,newPassword:changed}});assert.equal(next.status,200);return next;
@@ -42,7 +54,7 @@ async function fixture(t) {
     const next=await request('/api/password',{method:'POST',session,data:{currentPassword:editorInitial,newPassword:editorChanged}});assert.equal(next.status,200);
     return {session:next,user:created.body.user};
   }
-  return {root,store,config,base,request,login,readyAdmin,newEditor};
+  return {root,store,config,base,request,challenge,login,readyAdmin,newEditor};
 }
 
 test('password hashing uses random salts and no plaintext; production origin requires HTTPS',async()=>{
@@ -53,6 +65,45 @@ test('password hashing uses random salts and no plaintext; production origin req
   await assert.rejects(hashPassword('short'),{status:400});
   assert.equal(origin('https://portal.creangel.com/'),'https://portal.creangel.com');
   assert.throws(()=>origin('http://portal.creangel.com'),{status:400});
+});
+
+test('CAPTCHA is required by the API, uses a private cookie and never reveals its answer',async t=>{
+  const f=await fixture(t);
+  const captcha=await f.challenge();
+  assert.match(captcha.cookie,/^creangel_captcha=[A-Za-z0-9_-]{43}$/);
+  assert.match(captcha.headers.get('set-cookie'),/Path=\/; HttpOnly; SameSite=Strict; Max-Age=300/);
+  assert.equal(captcha.headers.get('cache-control'),'no-store');
+  assert.ok(captcha.body.expiresAt>Date.now()&&captcha.body.expiresAt<=Date.now()+300000);
+  assert.match(captcha.body.image,/^data:image\/png;base64,/);
+  assert.ok(!JSON.stringify(captcha.body).includes(captchaAnswer));
+  const image=Buffer.from(captcha.body.image.split(',')[1],'base64');
+  assert.deepEqual(image.subarray(0,8),Buffer.from([137,80,78,71,13,10,26,10]));
+  assert.ok(!image.includes(Buffer.from(captchaAnswer)));assert.ok(!image.includes(Buffer.from('<svg')));
+  const post=(data,headers={})=>f.request('/api/login',{method:'POST',data:{username:'admin',password:initial,...data},headers});
+  assert.equal((await post({})).status,400);
+  assert.equal((await post({captchaAnswer})).status,400);
+  assert.equal((await post({captchaAnswer:'WRONG'},{Cookie:captcha.cookie})).status,400);
+  assert.equal((await post({captchaAnswer},{Cookie:captcha.cookie})).status,400);
+  assert.equal(f.store.db.prepare('SELECT count(*) AS n FROM sessions').get().n,0);
+});
+
+test('CAPTCHA refresh and each login consume the old challenge without losing the session cookie',async t=>{
+  const f=await fixture(t);
+  const old=await f.challenge();
+  const fresh=await f.request('/api/captcha',{headers:{Cookie:old.cookie}});
+  const cookie=fresh.cookies.find(value=>/^creangel_captcha=.+/.test(value));
+  assert.equal(fresh.status,200);assert.notEqual(cookie,old.cookie);
+  const post=(captchaCookie,data={})=>f.request('/api/login',{method:'POST',headers:{Cookie:captchaCookie},data:{username:'admin',password:initial,captchaAnswer,...data}});
+  assert.equal((await post(old.cookie)).status,400);
+  const accepted=await post(cookie,{captchaAnswer:' ab234 '});
+  assert.equal(accepted.status,200);assert.match(accepted.cookie,/^creangel_session=/);
+  assert.equal((await f.request('/api/session',{session:accepted})).status,200);
+  assert.equal((await post(cookie)).status,400);
+  const badPassword=await f.challenge();
+  assert.equal((await post(badPassword.cookie,{password:'wrong-password'})).status,401);
+  assert.equal((await post(badPassword.cookie)).status,400);
+  const duplicate=await f.challenge();
+  assert.equal((await post(duplicate.cookie+'; '+duplicate.cookie,{username:'cookie-probe'})).status,400);
 });
 
 test('anonymous access, wrong origins and missing CSRF cannot edit; initial password must change',async t=>{
