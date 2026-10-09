@@ -41,6 +41,28 @@
 .footer {border-top: 3px solid #fbd327;}
 .footer__title {color: #123449;}
 .table-of-contents {border-left-color: #d7e0e8;}
+.table-of-contents .table-of-contents__link {
+  display: block;
+  padding: .3rem .5rem;
+  border-left: 3px solid transparent;
+  border-radius: 0 4px 4px 0;
+}
+.table-of-contents .table-of-contents__link--active,
+.table-of-contents .table-of-contents__link--active:hover {
+  background: #12518e;
+  color: #fff;
+  border-left-color: #fbd327;
+}
+.table-of-contents .table-of-contents__link--active code {color: inherit;}
+@media (forced-colors: active) {
+  .table-of-contents .table-of-contents__link--active,
+  .table-of-contents .table-of-contents__link--active:hover {
+    background: Highlight;
+    color: HighlightText;
+    border-left-color: HighlightText;
+    forced-color-adjust: none;
+  }
+}
 a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible {
   outline: 3px solid #12518e; outline-offset: 3px;
 }
