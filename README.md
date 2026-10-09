@@ -144,13 +144,13 @@ npm ci --no-audit --no-fund
 npm --prefix documentation ci --no-audit --no-fund
 npm test
 npm run test:dependencies
-node --test ops/cms/test.mjs
+npm run test:cms
 npm run build:production -- --output _site --base-url https://portal.creangel.com
 ```
 
 Fuera de Docker se requieren Node 24 y Python 3 (`PYTHON` permite indicar su ejecutable). Las pruebas verifican CAPTCHA (caducidad, uso único, vinculación al navegador y validación en el servidor), autenticación, CSRF, roles, revocación, persistencia, rutas autorizadas y conservación de la publicación ante fallos. Un servidor HTTP estático sirve las páginas exportadas pero no sustituye la API de edición.
 
-El CMS se recompila desde los módulos realmente configurados de Decap; conserva edición visual Slate, Markdown, imágenes y código, y excluye proveedores externos y el widget Plate no utilizado. Los scripts y estilos estáticos de Docusaurus se externalizan para aplicar CSP sin scripts inline ni `eval`. La vista previa del CMS permite únicamente marcos del mismo origen.
+El CMS se recompila desde los módulos realmente configurados de Decap; conserva edición visual Slate, Markdown, imágenes y código, y excluye proveedores externos y el widget Plate no utilizado. El validador del esquema oficial de configuración se genera durante la construcción, incluidos los esquemas de los widgets registrados; el navegador ejecuta funciones ya preparadas, sin compilar código con `eval` o `new Function`. Los hashes del esquema revisado detienen la construcción si cambia Decap y requiere revisión. Las pruebas de CMS reproducen el fallo anterior con la generación dinámica bloqueada y verifican la configuración ES/EN, errores descriptivos y equivalencia con el validador original. Los scripts y estilos estáticos de Docusaurus se externalizan para aplicar CSP sin scripts inline ni `eval`. La vista previa del CMS permite únicamente marcos del mismo origen.
 
 La dependencia `braces@3.0.3` no dispone de una versión upstream corregida para su aviso de recursión: se mantiene visible en `npm audit` de documentación y recibe un parche reproducible, verificado por hashes, que limita profundidad del parser y recorrido AST. `npm ci` aplica el parche y las pruebas ejercitan su protección. No se oculta el aviso ni se considera una actualización oficial; revisar y sustituir el parche cuando upstream publique una corrección. Los demás avisos encontrados se eliminan mediante actualización o retirada de módulos no utilizados. La validación local no certifica DNS/HTTPS, cifrado de discos, vigilancia o controles de acceso del servidor de producción.
 
