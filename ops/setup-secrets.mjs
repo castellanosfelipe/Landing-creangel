@@ -13,7 +13,7 @@ function createFile(file,value) {
   catch (error) { if (error.code==='EEXIST') return; throw error; }
   if (runningAsRoot) fs.chownSync(file,1000,1000);
 }
-for (const [name,value] of [['editor-admin-password',randomBytes(24).toString('base64url')+'\n']]) {
+for (const [name,value] of [['editor-admin-password',randomBytes(24).toString('base64url')+'\n'],['backup-key',randomBytes(32)]]) {
   const file=path.join(dir,name);
   createFile(file,value);
 }

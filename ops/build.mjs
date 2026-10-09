@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {preparePublishedMedia} from './storage/published-media.mjs';
+import {buildCms} from './cms/build.mjs';
+import {externalizeDocumentationScripts} from './cms/documentation-csp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 function arg(name, fallback) {
@@ -33,6 +35,7 @@ run(python, ['.pages/check.py', '--site-root', output, '--base-url', siteURL]);
 run(python, ['ops/seo/apply.py', '--root', output, '--base-url', siteURL]);
 run(process.execPath, [npmCli, 'run', 'build'], path.join(root, 'documentation'), {PUBLIC_SITE_URL: siteURL});
 fs.cpSync(path.join(root, 'documentation/build'), path.join(output, 'documentacion'), {recursive: true});
+externalizeDocumentationScripts(path.join(output, 'documentacion'));
 // Docusaurus locale alternates use /404/ while its error pages are emitted as 404.html.
 for (const locale of ['', 'en/']) {
   const directory=path.join(output,'documentacion',locale);
@@ -42,12 +45,12 @@ for (const locale of ['', 'en/']) {
 }
 const admin = path.join(output, 'admin');
 fs.mkdirSync(admin, {recursive: true});
-for (const name of ['index.html', 'admin.css', 'account.js', 'account.css', 'login.html', 'login.js', 'local-backend.js', 'media-support.js']) {
+for (const name of ['index.html', 'admin.css', 'account.js', 'account.css', 'login.html', 'login.js', 'local-backend.js', 'media-support.js', 'bootstrap.js', 'protocol-support.js']) {
   const src = path.join(root, 'public/admin', name);
   if (fs.existsSync(src)) fs.copyFileSync(src, path.join(admin, name));
 }
 fs.cpSync(path.join(root,'public/admin/users'),path.join(admin,'users'),{recursive:true});
-fs.copyFileSync(path.join(root, 'node_modules/decap-cms/dist/decap-cms.js'), path.join(admin, 'decap-cms.js'));
+await buildCms(admin);
 let config = fs.readFileSync(path.join(root, 'public/admin/config.template.yml'), 'utf8');
 config = config.replaceAll('{{PUBLIC_SITE_URL}}',siteURL);
 if (config.includes('name: github') || config.includes('local_backend:') || config.includes('auth_endpoint:')) throw new Error('The CMS must use portal-owned editor accounts.');

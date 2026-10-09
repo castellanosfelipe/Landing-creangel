@@ -8,12 +8,33 @@
   "scripts": {
     "build:production": "node ops/build.mjs",
     "test": "node --test ops/editor/test/*.test.mjs",
-    "setup:secrets": "node ops/setup-secrets.mjs"
+    "setup:secrets": "node ops/setup-secrets.mjs",
+    "postinstall": "node ops/dependency-patches/apply.mjs",
+    "test:dependencies": "node --test ops/dependency-patches/test.mjs"
   },
   "dependencies": {
-    "decap-cms": "3.16.3",
+    "decap-cms-core": "3.19.1",
+    "decap-cms-backend-proxy": "3.5.3",
+    "decap-cms-editor-component-image": "3.4.2",
+    "decap-cms-locales": "3.8.2",
+    "decap-cms-widget-code": "3.7.2",
+    "decap-cms-widget-file": "3.5.3",
+    "decap-cms-widget-image": "3.4.3",
+    "decap-cms-widget-markdown": "3.13.1",
+    "decap-cms-widget-number": "3.4.2",
+    "decap-cms-widget-string": "3.3.2",
+    "decap-cms-widget-text": "3.3.2",
+    "esbuild": "0.28.2",
     "mdast-util-from-markdown": "2.0.2",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
     "sharp": "0.35.5",
+    "uuid": "11.1.1",
     "yaml": "1.10.3"
+  },
+  "overrides": {
+    "argparse": "2.0.1",
+    "trim": "0.0.3",
+    "uuid": "$uuid"
   }
 }

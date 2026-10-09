@@ -7,6 +7,9 @@ import {once} from 'node:events';
 import {createEditorServer} from '../server.mjs';
 import {hashPassword,verifyPassword,origin} from '../security.mjs';
 import {Store} from '../store.mjs';
+import {totp} from '../mfa.mjs';
+import {createHash} from 'node:crypto';
+import sharp from 'sharp';
 
 const initial='Initial-test-password-2026!';
 const changed='Changed-test-password-2026!';
@@ -30,6 +33,7 @@ async function fixture(t) {
   const base=`http://127.0.0.1:${server.address().port}`;
   t.after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await fs.rm(root,{recursive:true,force:true});});
   async function request(url,{method='GET',data,session,headers={}}={}) {
+    if(data?.action==='persistEntry')for(const file of data.params.dataFiles)if(!Object.hasOwn(file,'baseRevision')){try{file.baseRevision=createHash('sha256').update(await fs.readFile(path.join(root,file.path))).digest('hex');}catch(error){if(error.code!=='ENOENT')throw error;file.baseRevision=null;}}
     const response=await fetch(base+url,{method,headers:{...(data?{'Content-Type':'application/json',Origin:config.origin}:{}),...(session?{Cookie:session.cookie,'X-CSRF-Token':session.csrfToken}:{}),...headers},body:data?JSON.stringify(data):undefined});
     const body=await response.json();
     const cookies=response.headers.getSetCookie().map(value=>value.split(';')[0]);
@@ -46,7 +50,9 @@ async function fixture(t) {
   }
   async function readyAdmin() {
     const session=await login('admin',initial);assert.equal(session.status,200);
-    const next=await request('/api/password',{method:'POST',session,data:{currentPassword:initial,newPassword:changed}});assert.equal(next.status,200);return next;
+    const next=await request('/api/password',{method:'POST',session,data:{currentPassword:initial,newPassword:changed}});assert.equal(next.status,200);
+    const setup=await request('/api/mfa/setup',{method:'POST',session:next,data:{}});assert.equal(setup.status,200);
+    const confirmed=await request('/api/mfa/confirm',{method:'POST',session:next,data:{code:totp(setup.body.secret)}});assert.equal(confirmed.status,200);return confirmed;
   }
   async function newEditor(admin) {
     const created=await request('/api/users',{method:'POST',session:admin,data:{username:'editor',displayName:'Editor local',role:'editor',password:editorInitial}});assert.equal(created.status,201);
@@ -161,7 +167,7 @@ test('authorized editor can read/save only Markdown with stable URLs and safe im
   assert.equal((await content('deleteFiles',{paths:[documentPath]})).status,403);
   const imagePath='public/multimedia/documentacion/example.png';
   assert.equal((await content('persistMedia',{asset:{path:imagePath,encoding:'base64',content:Buffer.from('<script>bad</script>').toString('base64')}})).status,400);
-  const image=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a8XcAAAAASUVORK5CYII=','base64');
+  const image=await sharp({create:{width:2,height:2,channels:4,background:'#ffffff'}}).png().toBuffer();
   assert.equal((await content('persistMedia',{asset:{path:imagePath,encoding:'base64',content:image.toString('base64')}})).status,200);
   assert.equal((await content('getMedia',{mediaFolder:'public/multimedia/documentacion'})).body.length,1);
   await content('persistEntry',{dataFiles:[{path:documentPath,raw:markdown+'\n![Example](/multimedia/documentacion/example.png)\n'}]});
@@ -199,7 +205,7 @@ test('image validation happens before saving and a previously invalid draft can 
   assert.equal(missing.status,400);assert.match(missing.body.error,/no existe/);
   assert.equal((await save(markdown+'\n![Remote](https://images.example.com/picture.png)\n')).status,400);
   assert.equal((await save(markdown+'\n![Private](http://127.0.0.1:8785/api/media/draft.png)\n')).status,400);
-  const image=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a8XcAAAAASUVORK5CYII=','base64');
+  const image=await sharp({create:{width:2,height:2,channels:4,background:'#ffffff'}}).png().toBuffer();
   const asset={path:'public/multimedia/documentacion/draft.png',encoding:'base64',content:image.toString('base64')};
   assert.equal((await save(markdown+'\n![Alt](/multimedia/documentacion/draft.png "Title")\n',[asset])).status,200);
   assert.equal((await save(markdown+'\n![Alt](http://127.0.0.1:8785/multimedia/documentacion/draft.png)\n')).status,200);

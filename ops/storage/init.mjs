@@ -4,7 +4,9 @@ import {createHash} from 'node:crypto';
 import {ReleaseStore,readJson,writeJsonAtomically} from './release-store.mjs';
 import {siteOrigin,configureSite,sourceFingerprint} from './config.mjs';
 const origin=siteOrigin(),workspace='/workspace',releases='/srv/releases',data='/var/lib/editor';
-for(const dir of [workspace,releases,data])await fs.mkdir(dir,{recursive:true});
+const operationalDirectories=[workspace,releases,data,'/var/lib/backups'];
+for(const optional of ['/data','/config'])try{if((await fs.stat(optional)).isDirectory())operationalDirectories.push(optional);}catch(error){if(error.code!=='ENOENT')throw error;}
+for(const dir of operationalDirectories)await fs.mkdir(dir,{recursive:true});
 const marker=path.join(workspace,'.portal-workspace.json');
 const prior=await readJson(marker,await readJson(path.join(workspace,'.local-sandbox.json'),null));
 if(prior&&prior.origin!==origin)throw new Error('Conserve el origen de este volumen o cree un proyecto Compose independiente.');
@@ -64,5 +66,5 @@ async function own(dir) {
     if(entry.isDirectory())await own(filename);else if(!entry.isSymbolicLink())await fs.chown(filename,1000,1000);
   }
 }
-for(const dir of [workspace,releases,data])await own(dir);
+for(const dir of operationalDirectories)await own(dir);
 console.log('Contenido persistente preparado. Los documentos y usuarios existentes se conservan.');

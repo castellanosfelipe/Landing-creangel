@@ -102,9 +102,14 @@ test('duplicate document routes fail before writing; translations share routes a
   const es='documentation/docs',en='documentation/i18n/en/docusaurus-plugin-content-docs/current';
   await fs.mkdir(path.join(root,es),{recursive:true});
   await fs.mkdir(path.join(root,en),{recursive:true});
+  await fs.mkdir(path.join(root,'public/multimedia/documentacion'),{recursive:true});
   const audit=[];
   const service=new Content(root,(...event)=>audit.push(event));
-  const save=(folder,values,body)=>service.request('persistEntry',{dataFiles:[{path:folder+'/'+values.id+'.md',raw:document(values,body)}]}, {username:'test-editor'});
+  const save=async(folder,values,body)=>{
+    const name=folder+'/'+values.id+'.md';let baseRevision=null;
+    try {baseRevision=(await service.entry(name)).file.id;}catch(error) {if(error.status!==404)throw error;}
+    return service.request('persistEntry',{dataFiles:[{path:name,raw:document(values,body),baseRevision}]},{username:'test-editor'});
+  };
   await save(es,fields);
   const collision={...fields,id:'another'};
   await assert.rejects(save(es,collision),error=>error.status===409&&/ruta ya está usada/.test(error.message));
@@ -130,9 +135,14 @@ test('English documents must match a Spanish original; effective English fallbac
   const es='documentation/docs',en='documentation/i18n/en/docusaurus-plugin-content-docs/current';
   await fs.mkdir(path.join(root,es),{recursive:true});
   await fs.mkdir(path.join(root,en),{recursive:true});
+  await fs.mkdir(path.join(root,'public/multimedia/documentacion'),{recursive:true});
   const audit=[];
   const service=new Content(root,(...event)=>audit.push(event));
-  const save=(folder,values)=>service.request('persistEntry',{dataFiles:[{path:folder+'/'+values.id+'.md',raw:document(values)}]}, {username:'test-editor'});
+  const save=async(folder,values)=>{
+    const name=folder+'/'+values.id+'.md';let baseRevision=null;
+    try {baseRevision=(await service.entry(name)).file.id;}catch(error) {if(error.status!==404)throw error;}
+    return service.request('persistEntry',{dataFiles:[{path:name,raw:document(values),baseRevision}]},{username:'test-editor'});
+  };
   const original={...fields,id:'guide',slug:'/guides/guide'};
   await assert.rejects(save(en,original),error=>error.status===409&&/primero el documento en español/.test(error.message));
   await assert.rejects(fs.stat(path.join(root,en,'guide.md')),{code:'ENOENT'});

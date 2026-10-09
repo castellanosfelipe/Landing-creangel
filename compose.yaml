@@ -1,6 +1,17 @@
 name: creangel-portal
+x-hardened: &hardened
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  logging: {driver: json-file, options: {max-size: "10m", max-file: "10"}}
 services:
   init:
+    <<: *hardened
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER]
+    mem_limit: 1g
+    cpus: 1.0
+    pids_limit: 128
+    tmpfs: ["/tmp:size=256m,mode=1777,nosuid,nodev"]
     image: creangel-portal-runtime:latest
     build:
       context: .
@@ -11,10 +22,15 @@ services:
     command: [node, /app/ops/storage/init.mjs]
     environment:
       PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-https://portal.creangel.com}
-    volumes: [workspace:/workspace, releases:/srv/releases, editor_data:/var/lib/editor]
+    volumes: [workspace:/workspace, releases:/srv/releases, editor_data:/var/lib/editor, backup_data:/var/lib/backups, caddy_data:/data, caddy_config:/config]
     network_mode: none
     restart: "no"
   editor:
+    <<: *hardened
+    mem_limit: ${EDITOR_MEMORY_LIMIT:-512m}
+    cpus: ${EDITOR_CPU_LIMIT:-1.0}
+    pids_limit: 128
+    tmpfs: ["/tmp:size=256m,mode=1777,nosuid,nodev"]
     image: creangel-portal-runtime:latest
     build:
       context: .
@@ -28,6 +44,9 @@ services:
       INITIAL_ADMIN_PASSWORD_FILE: /run/secrets/editor_admin_password
       EDITOR_DATABASE: /var/lib/editor/editor.sqlite
       CONTENT_ROOT: /workspace
+      AUDIT_RETENTION_DAYS: ${AUDIT_RETENTION_DAYS:-90}
+      ALERT_RETENTION_DAYS: ${ALERT_RETENTION_DAYS:-30}
+      EDITOR_IDLE_MINUTES: ${EDITOR_IDLE_MINUTES:-30}
     secrets: [editor_admin_password]
     volumes: [workspace:/workspace, editor_data:/var/lib/editor]
     depends_on:
@@ -41,6 +60,11 @@ services:
     restart: unless-stopped
     networks: [internal]
   builder:
+    <<: *hardened
+    mem_limit: ${BUILDER_MEMORY_LIMIT:-2g}
+    cpus: ${BUILDER_CPU_LIMIT:-2.0}
+    pids_limit: 256
+    tmpfs: ["/tmp:size=512m,mode=1777,nosuid,nodev"]
     image: creangel-portal-runtime:latest
     build:
       context: .
@@ -63,6 +87,11 @@ services:
     stop_grace_period: 2m
     networks: [internal]
   web:
+    <<: *hardened
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 64
+    tmpfs: ["/tmp:size=64m,mode=1777,nosuid,nodev"]
     build: {context: ., target: web}
     volumes: [releases:/srv/releases:ro]
     depends_on:
@@ -71,7 +100,15 @@ services:
     restart: unless-stopped
     networks: [internal]
   proxy:
-    image: caddy:2.10-alpine
+    <<: *hardened
+    image: creangel-portal-proxy:latest
+    build: {context: ., target: proxy}
+    user: "1000:1000"
+    sysctls: {net.ipv4.ip_unprivileged_port_start: "0"}
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 64
+    tmpfs: ["/tmp:size=64m,mode=1777,nosuid,nodev"]
     environment:
       SITE_DOMAIN: ${SITE_DOMAIN:-portal.creangel.com}
       ACME_EMAIL: ${ACME_EMAIL:-soluciones@creangel.com}
@@ -81,13 +118,39 @@ services:
       web: {condition: service_healthy}
     restart: unless-stopped
     networks: [internal, outbound]
+  backup:
+    <<: *hardened
+    image: creangel-portal-runtime:latest
+    command: [node, /app/ops/backup/service.mjs]
+    environment:
+      BACKUP_KEY_FILE: /run/secrets/backup_key
+      BACKUP_SOURCE: /workspace
+      BACKUP_DATABASE: /var/lib/editor/editor.sqlite
+      BACKUP_DIRECTORY: /var/lib/backups
+      BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    user: "1000:1000"
+    volumes: [workspace:/workspace:ro, editor_data:/var/lib/editor:ro, backup_data:/var/lib/backups]
+    secrets: [backup_key]
+    depends_on:
+      init: {condition: service_completed_successfully}
+      editor: {condition: service_healthy}
+    network_mode: none
+    mem_limit: ${BACKUP_MEMORY_LIMIT:-1g}
+    cpus: 1.0
+    pids_limit: 64
+    tmpfs: ["/tmp:size=768m,mode=1777,nosuid,nodev"]
+    restart: unless-stopped
 secrets:
   editor_admin_password:
     file: ${EDITOR_ADMIN_PASSWORD_PATH:-./secrets/editor-admin-password}
+  backup_key:
+    file: ${BACKUP_KEY_PATH:-./secrets/backup-key}
 volumes:
   workspace:
   releases:
   editor_data:
+  backup_data:
   caddy_data:
   caddy_config:
 networks:

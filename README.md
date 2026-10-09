@@ -19,7 +19,11 @@ El administrador inicial se llama `admin`, salvo que se cambie `INITIAL_ADMIN_US
 
 Desde **Administrar usuarios**, un administrador puede crear varios editores o administradores, cambiar nombre y rol, desactivar/reactivar cuentas, restablecer contraseñas y consultar los últimos 100 eventos. Cada contraseña inicial o restablecida debe cambiarse al acceder. No existe autorregistro público. Los editores solo pueden editar documentación/imágenes y cambiar su propia contraseña; la API también aplica estos permisos. Se impide desactivar o degradar la propia cuenta administradora o el último administrador activo.
 
-Desactivar una cuenta, cambiar su rol o restablecer su contraseña revoca sus sesiones. Las sesiones expiran a las ocho horas, usan cookies HttpOnly y SameSite Strict, con Secure en producción HTTPS. Las contraseñas se almacenan con scrypt y sal individual; no se guardan contraseñas ni tokens de sesión en el navegador. Las escrituras exigen sesión, origen autorizado y token CSRF. Se limitan los intentos de acceso fallidos.
+Desactivar una cuenta, cambiar su rol o restablecer su contraseña revoca sus sesiones. Las sesiones expiran a las ocho horas o tras 30 minutos de inactividad; los sondeos automáticos no prolongan el acceso. Usan cookies HttpOnly y SameSite Strict, con Secure en producción HTTPS. Las contraseñas nuevas tienen 15–128 caracteres, admiten frases largas y rechazan claves comunes, repetidas o relacionadas con la cuenta. Se almacenan con scrypt N=32768, r=8, p=3, sal individual y parámetros versionados. Las credenciales anteriores siguen verificándose y actualizan su hash al acceder; las débiles requieren cambio. No se guardan contraseñas ni tokens de sesión en el navegador. Las escrituras exigen sesión, origen autorizado y token CSRF. Se limitan los intentos de acceso fallidos.
+
+Los administradores deben configurar un segundo factor **TOTP local** después de cambiar la contraseña inicial. Introducir la clave mostrada en una aplicación autenticadora y confirmar su código; no se envía a proveedores externos. Guardar los diez códigos de recuperación en un gestor privado: solo se muestran al generarlos y cada uno sirve una vez. La clave TOTP se cifra con AES-256-GCM; `editor_data/mfa.key` debe conservarse junto a la base de datos. Altas, bajas, cambios de rol, restablecimientos y renovación de recuperación exigen reconfirmar contraseña y segundo factor cuando han pasado cinco minutos. La actualización de seguridad cierra las sesiones anteriores y conserva cuentas y contenido.
+
+Los rechazos, cierres de sesión y operaciones sensibles generan eventos con IP, fecha e identificador de solicitud, sin contraseñas, códigos ni claves. Las alertas aparecen en **Administrar usuarios** y en la salida JSON de los servicios. Docker conserva esta segunda salida fuera del proceso del CMS, con rotación de diez archivos de 10 MB por servicio; su protección depende del acceso al host. Los eventos SQLite se retienen 90 días y las alertas 30 días, configurables en `.env`. Además, se conservan como máximo 50.000 eventos recientes (con limpieza cada cien escrituras) y 1.000 alertas para limitar crecimiento ante abuso. No se eliminan usuarios automáticamente.
 
 El inicio de sesión también exige escribir los cinco caracteres de una imagen CAPTCHA generada por el propio servidor. Se puede solicitar **Otro código** si no es legible. Cada desafío vence a los cinco minutos, queda vinculado al navegador y se consume al intentar acceder; el servidor verifica la respuesta antes de comprobar la contraseña. La imagen se renueva tras un intento fallido. No se usan Google reCAPTCHA, cuentas externas ni claves de un proveedor. Este control complementa los límites de intentos y no cambia las cuentas o contraseñas existentes.
 
@@ -33,7 +37,7 @@ Copiar el proyecto al servidor y preparar la contraseña y `.env` sin sobrescrib
 docker run --rm -v "$PWD:/app" -w /app node:24-bookworm-slim node ops/setup-secrets.mjs
 ```
 
-También sirve `node ops/setup-secrets.mjs` con Node 24. Los archivos nuevos `.env` y `secrets/editor-admin-password` usan permisos 0600, directorio 0700 y UID/GID 1000 en Linux. No incluirlos en el repositorio ni en la imagen Docker. Completar `.env`:
+También sirve `node ops/setup-secrets.mjs` con Node 24. Los archivos nuevos `.env`, `secrets/editor-admin-password` y `secrets/backup-key` usan permisos 0600, directorio 0700 y UID/GID 1000 en Linux. No incluirlos en el repositorio ni en la imagen Docker. La clave de backup tiene 32 bytes aleatorios y debe guardarse también en un lugar privado separado del servidor. Completar `.env`:
 
 ```dotenv
 PUBLIC_SITE_URL=https://portal.creangel.com
@@ -41,6 +45,12 @@ SITE_DOMAIN=portal.creangel.com
 ACME_EMAIL=soluciones@creangel.com
 INITIAL_ADMIN_USERNAME=admin
 EDITOR_ADMIN_PASSWORD_PATH=./secrets/editor-admin-password
+BACKUP_KEY_PATH=./secrets/backup-key
+EDITOR_IDLE_MINUTES=30
+AUDIT_RETENTION_DAYS=90
+ALERT_RETENTION_DAYS=30
+BACKUP_RETENTION_DAYS=30
+BACKUP_INTERVAL_HOURS=24
 HTTP_PORT=80
 HTTPS_PORT=443
 ```
@@ -67,7 +77,9 @@ El override omite Caddy y expone Nginx únicamente en `127.0.0.1:8080`. El proxy
 
 No hay borradores remotos ni ramas editoriales: **Guardar** inicia la publicación directa. Para crear una traducción inglesa, crear primero el documento en español y conservar el mismo identificador y ruta en ambas colecciones. El editor rechaza rutas duplicadas y el prefijo reservado `/en` antes de guardar. **Ver publicación** abre la página del documento en su idioma; esperar a que el estado indique **Sitio actualizado** para consultar la versión recién guardada.
 
-Los documentos no pueden cambiar su ruta existente ni incluir HTML/MDX ejecutable. Se permiten signos habituales en títulos, descripciones multilínea y ejemplos de código Markdown. Las imágenes admiten PNG, JPEG, WebP, AVIF y GIF, hasta 10 MB. Se bloquea eliminar imágenes todavía referenciadas por documentos.
+Los documentos no pueden cambiar su ruta existente ni incluir HTML/MDX ejecutable. Se permiten signos habituales en títulos, descripciones multilínea y ejemplos de código Markdown. Cada guardado comprueba la revisión que se abrió; si otro editor la cambió, devuelve un conflicto y solicita recargar, conservando el archivo actual. Las imágenes admiten PNG, JPEG, WebP, AVIF y GIF, hasta 10 MB. Se decodifican por completo antes de guardarlas, se normalizan y se eliminan EXIF/XMP/IPTC; se rechazan imágenes dañadas, más de 8192 píxeles por lado, 32 fotogramas o 32 millones de píxeles acumulados. Se bloquea eliminar imágenes todavía referenciadas, incluidas rutas codificadas, relativas autorizadas y referencias Markdown.
+
+La biblioteca se consulta en páginas ligeras y obtiene los bytes de una imagen al seleccionarla. Límites por instalación: 1000 imágenes/512 MiB, 2000 documentos/64 MiB, reserva de disco de 64 MiB y 16 solicitudes de contenido en cola/32 MiB. Se informa cuando se alcanza un límite; no se truncan resultados ni se guardan archivos parcialmente. La API y Nginx limitan tamaño, conexiones y peticiones. Los contenedores de operación usan usuarios sin privilegios, raíz de solo lectura, límites de recursos y ninguna capacidad Linux. `init` dispone solo de las capacidades necesarias para preparar propietarios de los volúmenes.
 
 Para insertar una imagen: abrir el documento, usar **+ → Image → Elige una imagen → Subir nuevo**, confirmar la selección, completar el texto alternativo y publicar. La miniatura y la vista previa muestran también imágenes todavía no publicadas. El servidor detecta bloques de imagen vacíos antes de guardar y solicita seleccionar una imagen o quitar el bloque. La construcción calcula las dimensiones de las imágenes del portal; los originales conservan permisos privados y las copias publicadas se preparan para su lectura por Nginx.
 
@@ -77,7 +89,7 @@ docker compose restart builder
 docker compose exec builder node -e "fetch('http://127.0.0.1:8082/status').then(r=>r.json()).then(console.log)"
 ```
 
-Servicios: `init` prepara/migra volúmenes; `editor` administra cuentas y contenido; `builder` construye/publica; `web` sirve Nginx; `proxy` proporciona HTTPS. Ninguno monta el socket Docker. La actualización de infraestructura preserva documentos, imágenes y cuentas existentes:
+Servicios: `init` prepara/migra volúmenes; `editor` administra cuentas y contenido; `builder` construye/publica; `web` sirve Nginx; `proxy` proporciona HTTPS y `backup` prepara copias cifradas sin acceso a la red. Ninguno monta el socket Docker. La actualización de infraestructura preserva documentos, imágenes y cuentas existentes:
 
 ```sh
 docker compose up -d --build --remove-orphans --wait
@@ -85,19 +97,38 @@ docker compose up -d --build --remove-orphans --wait
 
 ## Persistencia, copia y recuperación
 
-Volúmenes: `workspace` guarda los documentos e imágenes editados; `editor_data` guarda SQLite (cuentas, sesiones, auditoría); `releases` guarda publicaciones, cinco versiones recientes y semilla; Caddy conserva certificados en sus volúmenes. **No ejecutar `down -v`** si se desean conservar estos datos. Copiar solo el repositorio no copia cambios editoriales ni cuentas.
+Volúmenes: `workspace` guarda los documentos e imágenes editados; `editor_data` guarda SQLite (cuentas, sesiones, auditoría y clave MFA); `releases` guarda publicaciones, cinco versiones recientes y semilla; `backup_data` guarda copias cifradas; Caddy conserva certificados en sus volúmenes. **No ejecutar `down -v`** si se desean conservar estos datos. Copiar solo el repositorio no copia cambios editoriales ni cuentas.
 
-Para una copia consistente, detener `editor` y `builder`, respaldar `workspace`, `editor_data` y `releases` completos con los archivos WAL/SHM si existen, y volver a iniciar esos dos servicios. Guardar las copias cifradas y verificar una restauración en un proyecto Compose independiente. Al restaurar, detener los servicios antes de sustituir volúmenes y conservar el mismo dominio configurado; no reutilizar el volumen de pruebas en producción.
+`backup` crea una copia cada 24 horas y retiene 30 días por defecto. Incluye documentos ES/EN, medios, un snapshot SQLite consistente y `mfa.key`. Verifica que el contenido no cambie durante la copia y cifra el archivo completo con AES-256-GCM. Un fallo conserva copias anteriores, genera una alerta en los logs y reintenta en cinco minutos. Se recomienda copiar los archivos `.cmsbak` a almacenamiento externo privado: un volumen del mismo servidor no protege frente a pérdida del host. No se copia código ni publicaciones reconstruibles.
+
+```sh
+docker compose exec backup node /app/ops/backup/service.mjs --once
+docker compose logs --tail=50 backup
+docker compose run --rm --no-deps backup node /app/ops/backup/service.mjs restore /var/lib/backups/backup-NOMBRE.cmsbak /var/lib/backups/restauracion-nueva
+```
+
+La restauración solo admite un directorio que aún no exista. Comprueba autenticidad, rutas, hashes de todos los archivos e integridad SQLite antes de crear `restauracion-nueva`. Su estructura es `content/` (carpetas editoriales) y `accounts/` (`editor.sqlite`, `mfa.key`); cierra sesiones históricas y no reactiva una configuración MFA incompleta. Tras verificarla, detener los servicios y transferir esos archivos a **volúmenes de un proyecto independiente**, con propietarios 1000:1000 y permisos privados, y construir el sitio. Mantener el origen correcto. La restauración no sustituye automáticamente datos ni publicaciones. Para bibliotecas cercanas al máximo, aumentar temporalmente memoria/tmpfs del contenedor restaurador a 2 GiB. Guardar la clave de backup por separado: perderla impide recuperar los archivos.
 
 Si se pierde la contraseña de todos los administradores, un operador con acceso al servidor puede preparar un **nuevo archivo privado** y restablecerla. No colocar la contraseña en argumentos de comandos:
 
 ```sh
-docker compose cp /ruta/privada/nueva-contrasena editor:/tmp/creangel-recovery-password
+docker compose exec -T editor sh -c 'umask 077; cat > /tmp/creangel-recovery-password' < /ruta/privada/nueva-contrasena
 docker compose exec editor node /app/ops/editor/cli.mjs reset-password admin --password-file /tmp/creangel-recovery-password
 docker compose exec editor rm /tmp/creangel-recovery-password
 ```
 
-El siguiente acceso exige cambiarla y revoca sesiones anteriores. Si el nombre inicial fue distinto, sustituir `admin` por ese nombre. Este comando no se expone por HTTP.
+Estos comandos se ejecutan en el shell del servidor Linux. La transferencia por entrada estándar permite escribir en el tmpfs privado aunque la raíz del contenedor sea de solo lectura. El siguiente acceso exige cambiarla y revoca sesiones anteriores. Si el nombre inicial fue distinto, sustituir `admin` por ese nombre. Este comando no se expone por HTTP.
+
+Si se pierde también el autenticador y todos los códigos de recuperación, el operador del servidor puede restablecer **solo el segundo factor**; el siguiente acceso requiere la contraseña y enrolar TOTP nuevamente:
+
+```sh
+docker compose exec editor node /app/ops/editor/cli.mjs reset-mfa admin --confirm admin
+docker compose exec editor node /app/ops/editor/cli.mjs security-status
+docker compose exec editor node /app/ops/editor/cli.mjs prune-audit
+docker compose exec editor node /app/ops/editor/cli.mjs anonymize-disabled usuario-inactivo --confirm usuario-inactivo
+```
+
+Anonimizar exige que la cuenta esté desactivada. Elimina sesiones, segundo factor y códigos de recuperación, sustituye su identificación en registros SQLite y genera un evento. Los backups y logs del host anteriores conservan su propia retención; la función no los modifica.
 
 ## Pruebas locales
 
@@ -112,10 +143,16 @@ Abrir `http://127.0.0.1:8785/` y `/admin/login.html`. Usa los mismos usuarios pr
 npm ci --no-audit --no-fund
 npm --prefix documentation ci --no-audit --no-fund
 npm test
+npm run test:dependencies
+node --test ops/cms/test.mjs
 npm run build:production -- --output _site --base-url https://portal.creangel.com
 ```
 
 Fuera de Docker se requieren Node 24 y Python 3 (`PYTHON` permite indicar su ejecutable). Las pruebas verifican CAPTCHA (caducidad, uso único, vinculación al navegador y validación en el servidor), autenticación, CSRF, roles, revocación, persistencia, rutas autorizadas y conservación de la publicación ante fallos. Un servidor HTTP estático sirve las páginas exportadas pero no sustituye la API de edición.
+
+El CMS se recompila desde los módulos realmente configurados de Decap; conserva edición visual Slate, Markdown, imágenes y código, y excluye proveedores externos y el widget Plate no utilizado. Los scripts y estilos estáticos de Docusaurus se externalizan para aplicar CSP sin scripts inline ni `eval`. La vista previa del CMS permite únicamente marcos del mismo origen.
+
+La dependencia `braces@3.0.3` no dispone de una versión upstream corregida para su aviso de recursión: se mantiene visible en `npm audit` de documentación y recibe un parche reproducible, verificado por hashes, que limita profundidad del parser y recorrido AST. `npm ci` aplica el parche y las pruebas ejercitan su protección. No se oculta el aviso ni se considera una actualización oficial; revisar y sustituir el parche cuando upstream publique una corrección. Los demás avisos encontrados se eliminan mediante actualización o retirada de módulos no utilizados. La validación local no certifica DNS/HTTPS, cifrado de discos, vigilancia o controles de acceso del servidor de producción.
 
 ## SEO y diseño
 

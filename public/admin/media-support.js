@@ -24,11 +24,15 @@ export function resolveEditorAsset(getAsset) {
 
 export function deserializeEditorMedia(asset) {
   const {id, name, path, encoding, content} = asset;
-  if (!path.startsWith(sourceFolder) || !imageName.test(path.slice(sourceFolder.length)) || path.slice(sourceFolder.length) !== name || encoding !== 'base64') {
+  if (!path.startsWith(sourceFolder) || !imageName.test(path.slice(sourceFolder.length)) || path.slice(sourceFolder.length) !== name || !['base64','url'].includes(encoding)) {
     throw new Error('La respuesta de la imagen no contiene una ruta autorizada.');
   }
   const cached = mediaCache.get(path);
-  if (cached && cached.id === id) return cached;
+  if (cached && cached.id === id && (encoding==='url'||cached.file)) return cached;
+  if(encoding==='url') {
+    if(asset.url!=='/api/media/'+encodeURIComponent(name)||!Number.isSafeInteger(asset.size)||asset.size<1||asset.size>10*1024*1024)throw new Error('La vista previa de la imagen no es válida.');
+    return {id,name,path,size:asset.size,url:asset.url,displayURL:asset.url};
+  }
   const binary = atob(content);
   const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
   const type = mimeTypes[name.split('.').pop().toLowerCase()];

@@ -1,6 +1,8 @@
 (() => {
   const account=window.CreangelAccount;
   const loginForm=document.querySelector('#login-form'),passwordForm=document.querySelector('#password-form'),message=document.querySelector('#message');
+  const mfaForm=document.querySelector('#mfa-form'),recoveryPanel=document.querySelector('#recovery-panel');
+  let setupMfa=false;
   const captchaPanel=document.querySelector('#captcha-panel'),captchaImage=document.querySelector('#captcha-image'),captchaRefresh=document.querySelector('#captcha-refresh'),captchaStatus=document.querySelector('#captcha-status');
   const loginButton=loginForm.querySelector('button[type="submit"]');
   const nextValue=new URLSearchParams(location.search).get('next');
@@ -12,14 +14,27 @@
     stopCaptchaTimer();
     captchaTimer=setTimeout(()=>refreshCaptcha('El código anterior venció. Escriba el nuevo código.'),Math.max(0,captchaExpiresAt-Date.now()));
   }
-  function ready(session) {
+  async function ready(session) {
     stopCaptchaTimer();
+    loginForm.hidden=true;passwordForm.hidden=true;mfaForm.hidden=true;recoveryPanel.hidden=true;
     if(session.user.mustChangePassword) {
       loginForm.hidden=true;passwordForm.hidden=false;
       document.querySelector('#heading').textContent='Elija su contraseña';
       document.querySelector('#intro').textContent='Cambie la contraseña inicial antes de continuar.';
       passwordForm.elements.password.focus();
+    } else if(session.mfa?.required&&!session.mfa.verified) {
+      initialPassword='';setupMfa=session.mfa.setupRequired;mfaForm.hidden=false;
+      document.querySelector('#heading').textContent=setupMfa?'Proteja su cuenta':'Verificación en dos pasos';
+      document.querySelector('#intro').textContent=setupMfa?'Configure su segundo factor para administrar el portal.':'Confirme el acceso con su aplicación de autenticación.';
+      document.querySelector('#mfa-setup').hidden=!setupMfa;
+      if(setupMfa){const setup=await account.request('/api/mfa/setup','POST');document.querySelector('#mfa-secret').value=setup.secret;}
+      mfaForm.elements.code.focus();
+    } else if(session.recoveryCodes?.length) {
+      initialPassword='';document.querySelector('#mfa-secret').value='';recoveryPanel.hidden=false;
+      document.querySelector('#heading').textContent='Segundo factor configurado';document.querySelector('#intro').textContent='Guarde los códigos antes de continuar.';
+      document.querySelector('#recovery-codes').textContent=session.recoveryCodes.join('\n');
     } else {
+      initialPassword='';
       // Decap keeps public identity metadata only; the session credential remains HttpOnly.
       localStorage.setItem('decap-cms-user',JSON.stringify({...session.user,name:session.user.displayName,login:session.user.username,backendName:'creangel-local'}));
       location.replace(next);
@@ -62,7 +77,7 @@
     try {
       initialPassword=loginForm.elements.password.value;
       const session=await account.login(loginForm.elements.username.value,initialPassword,loginForm.elements.captchaAnswer.value);
-      loginForm.elements.password.value='';ready(session);
+      loginForm.elements.password.value='';await ready(session);
     } catch(error) {
       initialPassword='';show(error);loggingIn=false;
       await refreshCaptcha('Escriba el nuevo código para volver a intentarlo.',true);
@@ -79,8 +94,12 @@
         await refreshCaptcha();throw new Error('Inicie sesión de nuevo para cambiar su contraseña inicial.');
       }
       const session=await account.password(initialPassword,passwordForm.elements.password.value);
-      initialPassword='';passwordForm.reset();ready(session);
+      initialPassword='';passwordForm.reset();await ready(session);
     }catch(error){show(error);}finally{button.disabled=false;}
   });
-  account.restore().then(session=>{if(!session.user.mustChangePassword)ready(session);else refreshCaptcha();}).catch(()=>refreshCaptcha());
+  mfaForm.addEventListener('submit',async event=>{event.preventDefault();const button=mfaForm.querySelector('[type=submit]');button.disabled=true;message.textContent='';try{const result=await account.mfaVerify(mfaForm.elements.code.value,setupMfa);mfaForm.reset();await ready(result);}catch(error){show(error);mfaForm.elements.code.value='';if(error.status===401)location.replace(account.loginURL(next));}finally{button.disabled=false;}});
+  document.querySelector('#mfa-cancel').addEventListener('click',()=>account.logout().catch(show));
+  document.querySelector('#copy-mfa-secret').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(document.querySelector('#mfa-secret').value);message.textContent='Clave copiada. Péguela en su aplicación de autenticación.';message.className='success';}catch{show(new Error('Seleccione y copie la clave manualmente.'));}});
+  document.querySelector('#recovery-continue').addEventListener('click',()=>{document.querySelector('#recovery-codes').textContent='';const result={...account.session};delete result.recoveryCodes;ready(result).catch(show);});
+  account.restore().then(async session=>{if(!session.user.mustChangePassword)await ready(session);else await refreshCaptcha();}).catch(error=>{if(error.status!==401)show(error);refreshCaptcha();});
 })();

@@ -72,6 +72,7 @@ async function loop() {
       state = {...state,state:'failed',lastError:error.message,finishedAt:new Date().toISOString()};
       await save();
       console.error(error.message);
+      console.error(JSON.stringify({type:'cms_security_alert',kind:'publication_failed',timestamp:new Date().toISOString(),message:'La publicación falló; se conserva la versión anterior.'}));
     }
     if (!stopped) await new Promise(resolve=>setTimeout(resolve,1500));
   }
