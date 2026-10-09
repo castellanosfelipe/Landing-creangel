@@ -8,7 +8,7 @@
   "scripts": {
     "build:production": "node ops/build.mjs",
     "test": "node --test ops/editor/test/*.test.mjs",
-    "test:cms": "node --test ops/cms/config-validator.test.mjs ops/cms/test.mjs",
+    "test:cms": "node --test ops/cms/config-validator.test.mjs ops/cms/image-widget.test.mjs ops/cms/test.mjs",
     "setup:secrets": "node ops/setup-secrets.mjs",
     "postinstall": "node ops/dependency-patches/apply.mjs",
     "test:dependencies": "node --test ops/dependency-patches/test.mjs"
@@ -23,6 +23,7 @@
     "decap-cms-widget-image": "3.4.3",
     "decap-cms-widget-markdown": "3.13.1",
     "decap-cms-widget-number": "3.4.2",
+    "decap-cms-widget-object": "3.7.3",
     "decap-cms-widget-string": "3.3.2",
     "decap-cms-widget-text": "3.3.2",
     "esbuild": "0.28.2",

@@ -57,6 +57,7 @@ test('keeps official validation and descriptive errors for malformed configurati
   value = clone(portal);value.collections[0].fields[5].modes = ['invalid'];invalid.push(value);
   value = clone(portal);value.collections[0].fields.push({name: 'photo', widget: 'image', allow_multiple: 'yes'});invalid.push(value);
   value = clone(portal);value.collections[0].fields.push({name: 'code', widget: 'code', keys: {code: 42}});invalid.push(value);
+  value = clone(portal);value.collections[0].fields.push({name: 'picture', widget: 'object', collapsed: 'yes', fields: [{name: 'image', widget: 'image'}]});invalid.push(value);
   value = clone(portal);value.collections[0].sortable_fields = [{field: 'id', default_sort: 'asc'}, {field: 'title', default_sort: 'desc'}];invalid.push(value);
   for (const config of invalid) {
     const actual = errors(validate, clone(config));
@@ -98,7 +99,7 @@ test('production CMS build uses the standalone validator and retains all configu
     const result = await buildCms(directory);
     assert.equal(result.configValidation, 'build-time-standalone');
     assert.equal(result.validatorHash, prepared.hash);
-    for (const widget of ['string', 'text', 'number', 'image', 'file', 'markdown', 'code']) assert.ok(result.modules.some(name => name.includes(`decap-cms-widget-${widget}/`)));
+    for (const widget of ['string', 'text', 'number', 'image', 'file', 'markdown', 'code', 'object']) assert.ok(result.modules.some(name => name.includes(`decap-cms-widget-${widget}/`)));
     assert.ok(!result.modules.some(name => /ajv[/\\]dist[/\\]compile|ajv-keywords|ajv-errors/.test(name)));
   } finally {fs.rmSync(directory, {recursive: true, force: true});}
 });

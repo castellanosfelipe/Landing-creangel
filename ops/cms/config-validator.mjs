@@ -16,7 +16,7 @@ const root = path.resolve(import.meta.dirname, '../..');
 const {_} = codegen;
 const {_Code} = code;
 const require = createRequire(import.meta.url);
-export const CMS_WIDGETS = ['string', 'text', 'number', 'image', 'file', 'markdown', 'code'];
+export const CMS_WIDGETS = ['string', 'text', 'number', 'image', 'file', 'markdown', 'code', 'object'];
 const upstreamSignatures = {
   'constants/configSchema.js': '46312f42b2b6e2252b9ac1cec4f37b31521e8700ae61e00a958c8e5952ca635d',
   'lib/i18n.js': '47b0fa4fd8afd3e2ed6232491fb403d6d3d8fbce12b349b2797d04b6abd195cf',
