@@ -527,9 +527,9 @@ for (const map of document.querySelectorAll('.capability-map[data-map-count]')) 
 /* Preview the matching product title while exploring the wheel. Native links
    and the current-page marker keep their existing behaviour. */
 for (const layout of document.querySelectorAll('.product-wheel-layout')) {
-  const sectors = [...layout.querySelectorAll('.product-wheel-sector[data-wheel-product]')];
+  const sectors = [...layout.querySelectorAll('.product-wheel-sector[data-wheel-product], .product-wheel-foundation')];
   const rowScope = layout.classList.contains('product-wheel-product-hero') ? layout.closest('main') : layout;
-  const rows = [...rowScope.querySelectorAll('.product-entry, .product-wheel-legend-item')];
+  const rows = [...rowScope.querySelectorAll('.product-entry, .product-wheel-legend-item, .product-foundation-item[href]')];
   const pathFor = link => {
     try { return new URL(link.getAttribute('href'), document.baseURI).pathname.replace(/\/+$/, ''); }
     catch { return null; }

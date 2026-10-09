@@ -4621,6 +4621,12 @@
     "Clasificar documentos": "Classify documents",
     "y extraer metadatos.": "and extract metadata.",
     "Almacenamiento · SQL · Analítica": "Storage · SQL · Analytics",
-    "Identidades · Roles · Permisos": "Identities · Roles · Permissions"
+    "Identidades · Roles · Permisos": "Identities · Roles · Permissions",
+    "Incluida en todos los productos": "Included in every product",
+    "Base compartida de IFINDIT": "Shared IFINDIT foundation",
+    "Estas capacidades forman parte de IFINDIT y no se venden por separado.": "These capabilities are part of IFINDIT and are not sold separately.",
+    "IFINDIT LAKEHOUSE": "IFINDIT LAKEHOUSE",
+    "Datos y procesamiento": "Data and processing",
+    "Identidades y acceso": "Identity and access"
   }
 }

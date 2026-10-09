@@ -960,6 +960,7 @@ figure.product-wheel {
 .product-wheel-shared a:hover { border-color:#9bbbd5; background:#edf4fa; }
 
 /* Only the directory beside the home diagram becomes a list of five rows. */
+.product-wheel-home { align-items:start; }
 .product-wheel-home .product-directory {
   display:grid;
   grid-template-columns:minmax(0,1fr);
@@ -991,6 +992,51 @@ figure.product-wheel {
   text-underline-offset:4px;
 }
 
+/* A single shared foundation, visually separate from the five product rows. */
+.product-foundation-summary {
+  margin-top:20px;
+  padding:20px;
+  border:1px solid #c4d8e8;
+  border-top:4px solid #ffd127;
+  border-radius:5px;
+  background:#eef5fb;
+}
+.product-foundation-summary h3 { margin:0 0 6px; color:#0b4b82; font-size:19px; line-height:1.35; }
+.product-foundation-summary .product-foundation-note { margin:0; font-size:14px; line-height:1.6; }
+.product-foundation-summary .product-foundation-kicker {
+  display:inline-block;
+  margin:0 0 10px;
+  color:#0b4b82;
+  font-size:12px;
+  font-weight:650;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.product-foundation-items { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px; }
+.product-foundation-item {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  min-height:64px;
+  padding:12px;
+  border:1px solid #c4d8e8;
+  border-radius:4px;
+  background:white;
+  color:#17394f;
+  text-decoration:none;
+}
+.product-foundation-item svg { flex:none; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.product-foundation-item span { display:block; min-width:0; }
+.product-foundation-item strong { display:block; font-size:15px; line-height:1.35; }
+.product-foundation-item small { display:block; margin-top:4px; font-size:13px; line-height:1.4; }
+.product-foundation-item.is-wheel-highlighted,
+.product-foundation-item:focus-visible { background:#0b4b82; border-color:#0b4b82; color:white; }
+.product-foundation-item:focus-visible { outline:3px solid #ffd127; outline-offset:3px; }
+@media (hover:hover) {
+  .product-foundation-item:hover { background:#0b4b82; border-color:#0b4b82; color:white; }
+}
+
 @media (max-width:1100px) {
   .product-wheel-layout { gap:32px; }
   .product-wheel-home .product-entry { gap:10px; }
@@ -1012,8 +1058,14 @@ figure.product-wheel {
   .product-wheel-context { margin-top:24px; padding-top:20px; }
   .product-wheel-home .product-entry { grid-template-columns:20px minmax(0,1fr) 44px; }
   .product-wheel-home .product-entry h3 { font-size:18px; }
+  .product-foundation-summary { padding:16px; }
+  .product-foundation-items { grid-template-columns:1fr; }
 }
 @media (forced-colors:active) {
+  .product-foundation-summary,.product-foundation-item { border-color:CanvasText; background:Canvas; color:CanvasText; }
+  .product-foundation-summary h3,.product-foundation-summary .product-foundation-kicker { color:CanvasText; }
+  .product-foundation-item:hover,.product-foundation-item:focus-visible,.product-foundation-item.is-wheel-highlighted { background:Highlight; color:HighlightText; }
+  .product-foundation-item:focus-visible { outline-color:CanvasText; }
   .product-wheel-foundations { border-color:CanvasText; background:Canvas; box-shadow:none; }
   .product-wheel-foundation-title { background:CanvasText; color:Canvas; border-color:CanvasText; }
   .product-wheel-foundation { color:CanvasText; border-color:CanvasText; }

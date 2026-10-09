@@ -3,6 +3,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {ReleaseStore,readJson,writeJsonAtomically} from './release-store.mjs';
 import {siteOrigin,configureSite,sourceFingerprint} from './config.mjs';
+import {upgradeDocumentationBrand} from './documentation-brand.mjs';
 const origin=siteOrigin(),workspace='/workspace',releases='/srv/releases',data='/var/lib/editor';
 const operationalDirectories=[workspace,releases,data,'/var/lib/backups'];
 for(const optional of ['/data','/config'])try{if((await fs.stat(optional)).isDirectory())operationalDirectories.push(optional);}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -20,6 +21,8 @@ else {
     });
   }
 }
+const renamedDocuments = await upgradeDocumentationBrand(workspace);
+if (renamedDocuments) console.log(`Marca IFINDIT LAKEHOUSE actualizada en ${renamedDocuments} documentos existentes.`);
 // Dependencies belong to the immutable runtime image. Old copies in a persistent
 // workspace must not override the versions installed by this Docker build.
 for(const relative of ['node_modules','documentation/node_modules']) {

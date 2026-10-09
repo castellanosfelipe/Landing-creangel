@@ -54,7 +54,7 @@ The catalog lets you search across categories and browse paginated results.
 
 ## Shared capabilities
 
-[LakeHouse](./lakehouse.md) brings together storage, SQL queries and analytical processing. [IFINDIT Auth IAM](./auth-iam.md) manages identities, organizations, groups, roles and permissions.
+[IFINDIT LAKEHOUSE](./lakehouse.md) brings together storage, SQL queries and analytical processing. [IFINDIT Auth IAM](./auth-iam.md) manages identities, organizations, groups, roles and permissions.
 
 ## Information and support
 

@@ -32,7 +32,7 @@ Organize incoming communications, identify key information and track each docume
 
 ## Shared platform foundation
 
-### [LakeHouse](./lakehouse.md)
+### [IFINDIT LAKEHOUSE](./lakehouse.md)
 
 It integrates data storage, SQL queries, analytical processing and access to data sets in different formats.
 

@@ -32,7 +32,7 @@ Organice las comunicaciones recibidas, identifique datos clave y consulte el est
 
 ## Base compartida de la plataforma
 
-### [LakeHouse](./lakehouse.md)
+### [IFINDIT LAKEHOUSE](./lakehouse.md)
 
 Integra almacenamiento de datos, consultas SQL, procesamiento analítico y acceso a conjuntos de datos de distintos formatos.
 

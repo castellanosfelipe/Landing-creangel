@@ -1,6 +1,6 @@
 ---
 id: "lakehouse"
-title: "LakeHouse"
+title: "IFINDIT LAKEHOUSE"
 description: "Integra almacenamiento de datos, consultas SQL, procesamiento analítico y acceso a conjuntos de datos de distintos formatos."
 sidebar_position: 7
 slug: "/plataforma/lakehouse"
@@ -48,7 +48,7 @@ Lleve los datos a las herramientas de análisis que ya utiliza su organización.
 
 ## Catálogo de características
 
-[Ver todas las características de LakeHouse](/plataforma/lakehouse/#caracteristicas)
+[Ver todas las características de IFINDIT LAKEHOUSE](/plataforma/lakehouse/#caracteristicas)
 
 El catálogo permite buscar en todas las categorías y recorrer los resultados por páginas.
 
