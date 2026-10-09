@@ -592,3 +592,41 @@ for (const languageLink of document.querySelectorAll('.language-switch a[data-la
     languageLink.href = destination.href;
   });
 }
+
+// Duplicate only the visual logo group; links and assistive content stay unique.
+for (const carousel of document.querySelectorAll('.logo-carousel')) {
+  const viewport = carousel.querySelector('.logos');
+  const track = carousel.querySelector('.logos-track');
+  const group = carousel.querySelector('.logo-carousel-group');
+  const toggle = carousel.querySelector('.logo-carousel-toggle');
+  if (!viewport || !track || !group || !toggle) continue;
+  const copy = group.cloneNode(true);
+  copy.classList.add('logo-carousel-copy');
+  copy.setAttribute('aria-hidden', 'true');
+  copy.setAttribute('inert', '');
+  for (const link of copy.querySelectorAll('a')) {
+    const item = document.createElement('span');
+    item.className = 'logo-carousel-item';
+    item.append(...link.childNodes);
+    link.replaceWith(item);
+  }
+  for (const image of copy.querySelectorAll('img')) image.alt = '';
+  track.append(copy);
+  let paused = false;
+  const updateCarousel = () => {
+    carousel.toggleAttribute('data-carousel-ready', !scrollMotionPreference.matches);
+    carousel.toggleAttribute('data-carousel-paused', paused);
+    toggle.hidden = scrollMotionPreference.matches;
+    toggle.setAttribute('aria-pressed', String(paused));
+    toggle.setAttribute('aria-label', paused
+      ? ui('Reanudar movimiento de los logos', 'Resume logo movement')
+      : ui('Pausar movimiento de los logos', 'Pause logo movement'));
+    toggle.querySelector('span').textContent = paused ? '▶' : 'Ⅱ';
+  };
+  toggle.addEventListener('click', () => { paused = !paused; updateCarousel(); });
+  viewport.addEventListener('focusout', event => {
+    if (!viewport.contains(event.relatedTarget)) viewport.scrollLeft = 0;
+  });
+  scrollMotionPreference.addEventListener('change', updateCarousel);
+  updateCarousel();
+}
