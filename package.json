@@ -8,7 +8,7 @@
   "scripts": {
     "build:production": "node ops/build.mjs",
     "test": "node --test ops/editor/test/*.test.mjs",
-    "test:cms": "node --test ops/cms/config-validator.test.mjs ops/cms/image-widget.test.mjs ops/cms/test.mjs",
+    "test:cms": "node --test ops/cms/config-validator.test.mjs ops/cms/image-widget.test.mjs ops/cms/toc-highlight.test.mjs ops/cms/test.mjs",
     "setup:secrets": "node ops/setup-secrets.mjs",
     "postinstall": "node ops/dependency-patches/apply.mjs",
     "test:dependencies": "node --test ops/dependency-patches/test.mjs"
