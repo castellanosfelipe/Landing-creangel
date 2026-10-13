@@ -246,6 +246,16 @@ sequenceDiagram
 
 Se validan conflictos entre revisiones concurrentes, rutas duplicadas, imágenes utilizadas y reglas de contenido. Se permiten imágenes PNG, JPEG, WebP, AVIF y GIF hasta 10 MB; el servidor aplica además controles de decodificación, dimensiones, metadatos y cuotas.
 
+### 5.1 Videos en la documentación
+
+Para añadir un video de YouTube, coloque un enlace Markdown en su propia línea con un texto que empiece por `Video:`:
+
+```markdown
+[Video: Activación y desactivación de usuarios](https://www.youtube.com/watch?v=YTSzPdvoj70)
+```
+
+Al publicar, el enlace se convierte en un reproductor adaptable y conserva el enlace original como alternativa. Los videos se cargan cuando se aproximan al área visible y no se reproducen automáticamente. Solo se generan reproductores para direcciones HTTPS de YouTube con un identificador válido; no es necesario insertar HTML o MDX en el editor.
+
 ## 6. Estructura del repositorio
 
 ```text

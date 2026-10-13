@@ -34,6 +34,42 @@ Review audit reports and logs to examine access activity and support security an
 
 Configure the web authenticator's elements to adapt the sign-in experience to your organization.
 
+## Video tutorials
+
+These Creangel tutorials show how to manage accounts and permissions in IFINDIT Auth IAM. The videos are in Spanish.
+
+### Creating a local user
+
+Shows how to register an account from the users section: complete the form, assign the User role for a person who will only search, and confirm that the account was saved.
+
+Duration: 1:20.
+
+[Video: Creating a local user step by step](https://www.youtube.com/watch?v=qSA64gG5q-s&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=4)
+
+### Linking users to Active Directory
+
+Explains how to check whether Active Directory users are linked, coordinate their addition with the administrator, and verify synchronization. Includes the Synchronize option when a user does not yet appear in IFINDIT.
+
+Duration: 1:10.
+
+[Video: Linking users to Active Directory](https://www.youtube.com/watch?v=N8tnhFyhQAc&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=3)
+
+### Assigning and removing permissions
+
+Covers editing an account to add a group, assign the User role, and save permissions. Also shows how to remove a group and confirm the changes.
+
+Duration: 1:07.
+
+[Video: Managing and assigning user permissions](https://www.youtube.com/watch?v=f55uU2etdk0&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=2)
+
+### Activating or deactivating an account
+
+Explains how to find a user, edit the account, and select or clear the activation checkbox. Saving the settings applies the change.
+
+Duration: 0:58.
+
+[Video: Activating and deactivating users](https://www.youtube.com/watch?v=YTSzPdvoj70&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=1)
+
 ## IFINDIT platform
 
 [Explore how products and shared capabilities relate](/en/plataforma/)

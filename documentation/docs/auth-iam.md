@@ -34,6 +34,42 @@ Consulte informes y registros de auditoría para revisar la actividad de acceso 
 
 Configure los elementos del autenticador web para adaptar la experiencia de ingreso a su organización.
 
+## Guías de uso en video
+
+Estas guías de Creangel muestran cómo administrar cuentas y permisos en IFINDIT Auth IAM. Los videos están en español.
+
+### Crear un usuario local
+
+Muestra cómo registrar una cuenta desde la sección de usuarios: completar el formulario, asignar el rol User cuando la persona solo realizará búsquedas y comprobar que el registro se guardó.
+
+Duración: 1:20.
+
+[Video: Creación usuario local paso a paso](https://www.youtube.com/watch?v=qSA64gG5q-s&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=4)
+
+### Vincular usuarios con Directorio Activo
+
+Explica cómo comprobar la vinculación de usuarios del Directorio Activo, coordinar su incorporación con el administrador y verificar la sincronización. Incluye la opción Sincronizar cuando un usuario todavía no aparece en IFINDIT.
+
+Duración: 1:10.
+
+[Video: Vinculación de usuarios con directorio activo](https://www.youtube.com/watch?v=N8tnhFyhQAc&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=3)
+
+### Asignar y retirar permisos
+
+Presenta la edición de una cuenta para agregar un grupo, asignar el rol User y guardar los permisos. También muestra cómo retirar un grupo y confirmar los cambios.
+
+Duración: 1:07.
+
+[Video: Gestión y asignación de permisos de usuario](https://www.youtube.com/watch?v=f55uU2etdk0&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=2)
+
+### Activar o desactivar una cuenta
+
+Explica cómo buscar un usuario, editar su cuenta y marcar o desmarcar la casilla de activación. El cambio se aplica al guardar la configuración.
+
+Duración: 0:58.
+
+[Video: Activación y desactivación de usuarios](https://www.youtube.com/watch?v=YTSzPdvoj70&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=1)
+
 ## Plataforma IFINDIT
 
 [Ver cómo se relacionan los productos y las capacidades compartidas](/plataforma/)

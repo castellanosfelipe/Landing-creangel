@@ -34,6 +34,26 @@ Use representaciones vectoriales del texto para recuperar contenido similar por 
 
 Configure la apariencia y los componentes del buscador, como el autocompletado y las sugerencias. Gestione la autenticación y el acceso de los usuarios según los permisos definidos para cada equipo.
 
+## Guías de uso en video
+
+Estas guías de Creangel explican cómo comenzar una búsqueda y ajustar las consultas en IFINDIT SEARCH. Los videos están en español.
+
+### Realizar la primera búsqueda
+
+Recorre la selección del buscador desde Productos, la ejecución de una consulta y la lectura de sus resultados. Explica cómo revisar el total de documentos, aplicar filtros laterales, consultar fragmentos y metadatos, y abrir un documento.
+
+Duración: 1:01.
+
+[Video: Realizar la primera búsqueda](https://www.youtube.com/watch?v=zkSBYQ1NU1c&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=6)
+
+### Afinar consultas con operadores
+
+Explica el uso de comillas para frases exactas, AND para combinar términos, OR para buscar alternativas y el asterisco (*) para variaciones de palabras. Incluye ejemplos de búsquedas exactas, combinadas y parciales.
+
+Duración: 2:23.
+
+[Video: Uso de operadores de búsqueda](https://www.youtube.com/watch?v=5mVgCq1XYEw&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=5)
+
 ## Capacidades compartidas
 
 [IFINDIT LAKEHOUSE](./lakehouse.md) reúne almacenamiento, consultas SQL y procesamiento analítico. [IFINDIT Auth IAM](./auth-iam.md) gestiona identidades, organizaciones, grupos, roles y permisos.

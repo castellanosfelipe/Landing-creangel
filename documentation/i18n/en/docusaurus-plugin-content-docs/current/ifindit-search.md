@@ -34,6 +34,26 @@ Use vector representations of text to retrieve content with similar meaning. Thi
 
 Configure the search interface and its components, such as autocomplete and suggestions. Manage user authentication and access according to the permissions defined for each team.
 
+## Video tutorials
+
+These Creangel tutorials explain how to run a search and refine queries in IFINDIT SEARCH. The videos are in Spanish.
+
+### Running your first search
+
+Covers choosing the search tool from Products, running a query, and reading the results. Explains how to review the document count, apply side filters, read snippets and metadata, and open a document.
+
+Duration: 1:01.
+
+[Video: Running your first search](https://www.youtube.com/watch?v=zkSBYQ1NU1c&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=6)
+
+### Refining queries with operators
+
+Explains quotation marks for exact phrases, AND to combine terms, OR to search alternatives, and the asterisk (*) for word variations. Includes examples of exact, combined and partial searches.
+
+Duration: 2:23.
+
+[Video: Using search operators](https://www.youtube.com/watch?v=5mVgCq1XYEw&list=PLwBeBhlEm73Ovcy5gqo-5qOPzFZThOc1l&index=5)
+
 ## Shared capabilities
 
 [IFINDIT LAKEHOUSE](./lakehouse.md) brings together storage, SQL queries and analytical processing. [IFINDIT Auth IAM](./auth-iam.md) manages identities, organizations, groups, roles and permissions.

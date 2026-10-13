@@ -27,7 +27,10 @@ module.exports = {
     docs: {
       routeBasePath: '/',
       sidebarPath: require.resolve('./sidebars.js'),
-      beforeDefaultRemarkPlugins: [[require('./plugins/remark-site-assets'), {siteRoot}]],
+      beforeDefaultRemarkPlugins: [
+        [require('./plugins/remark-site-assets'), {siteRoot}],
+        require('./plugins/remark-video-guides'),
+      ],
     },
     blog: false,
     pages: false,
