@@ -22,6 +22,20 @@ export function resolveEditorAsset(getAsset) {
   return resolver;
 }
 
+export async function editorAssetBase64(assetProxy) {
+  // Decap fetches its blob preview URL even when it still has the local File.
+  // Read that File directly so uploads work with connect-src limited to self.
+  const file = assetProxy.fileObj;
+  if (!(file instanceof Blob)) return assetProxy.toBase64();
+  if (file.size > 10 * 1024 * 1024) throw new Error('La imagen debe tener como máximo 10 MB.');
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const parts = [];
+  for (let offset = 0; offset < bytes.length; offset += 32768) {
+    parts.push(String.fromCharCode(...bytes.subarray(offset, offset + 32768)));
+  }
+  return btoa(parts.join(''));
+}
+
 export function deserializeEditorMedia(asset) {
   const {id, name, path, encoding, content} = asset;
   if (!path.startsWith(sourceFolder) || !imageName.test(path.slice(sourceFolder.length)) || path.slice(sourceFolder.length) !== name || !['base64','url'].includes(encoding)) {

@@ -26,7 +26,11 @@
         implementation.getMediaFile=async path=>
           mediaSupport.deserializeEditorMedia(await implementation.request({action:'getMediaFile',params:{path:mediaSupport.sourceMediaPath(path)}}));
         implementation.persistMedia=async(assetProxy,options={})=>
-          mediaSupport.deserializeEditorMedia(await implementation.request({action:'persistMedia',params:{asset:{path:assetProxy.path,content:await assetProxy.toBase64(),encoding:'base64'},options:{commitMessage:options.commitMessage}}}));
+          mediaSupport.deserializeEditorMedia(await implementation.request({action:'persistMedia',params:{asset:{path:assetProxy.path,content:await mediaSupport.editorAssetBase64(assetProxy),encoding:'base64'},options:{commitMessage:options.commitMessage}}}));
+        // Draft images are serialized by the proxy when the entry is saved.
+        // Keep its entry protocol and options while using the same File reader.
+        const persistEntry=implementation.persistEntry.bind(implementation);
+        implementation.persistEntry=(entry,options)=>persistEntry({...entry,assets:entry.assets.map(asset=>({...asset,toBase64:()=>mediaSupport.editorAssetBase64(asset)}))},options);
         return implementation;
       }
     }
