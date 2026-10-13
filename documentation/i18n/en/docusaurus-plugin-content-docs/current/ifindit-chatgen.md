@@ -10,47 +10,29 @@ Put your organization's knowledge within reach through assistants that help your
 
 ## Key capabilities
 
-### Document-based responses
+### Answers grounded in documents
 
-Consult documented knowledge through responses grounded in available sources.
-
-[View the feature](/en/productos/ifindit-chatgen/#chatgen-0041)
+Ask questions about your organization's documented knowledge and receive answers grounded in available sources. Semantic search helps retrieve information related to each question.
 
 ### Agents and tools
 
-Support tasks with assistants that can consult information and use connected tools.
+Use assistants that combine information retrieval with connected tools to support your teams' tasks. The assistant's configuration defines the agent type and available tools.
 
-[View the feature](/en/productos/ifindit-chatgen/#chatgen-0016)
+### Custom conversation widgets
 
-### Custom widgets
+Configure conversation widgets for websites and applications. Adjust the welcome message, available input types and assistant behavior to suit your users.
 
-Adapt each conversation experience to your users' context and needs.
+### Conversation history and context
 
-[View the feature](/en/productos/ifindit-chatgen/#chatgen-0053)
-
-### Conversations with context
-
-Maintain the thread of a conversation to give continuity to each query.
-
-[View the feature](/en/productos/ifindit-chatgen/#chatgen-0005)
+Review the history and continue a conversation using the context of previous messages. The assistant's configuration determines how much context is included in each response.
 
 ### WhatsApp, voice and languages
 
-Support interactions across more channels, through voice and in different languages.
+Give users several ways to interact with the assistant: WhatsApp, text and voice. Language detection allows responses to follow the language of the question.
 
-[View the feature](/en/productos/ifindit-chatgen/#chatgen-0080)
+### Access and monitoring
 
-### Administration and control
-
-Control assistant access, usage and activity.
-
-[View the feature](/en/productos/ifindit-chatgen/#chatgen-0055)
-
-## Feature catalog
-
-[View all features of IFINDIT CHATGEN](/en/productos/ifindit-chatgen/#caracteristicas)
-
-The catalog lets you search across categories and browse paginated results.
+Manage who can access assistants and review recorded activity. Monitor conversation token usage to track the use of language models.
 
 ## Shared capabilities
 

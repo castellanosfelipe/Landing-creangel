@@ -10,47 +10,29 @@ Turn data from different sources into clear indicators, identify trends and shar
 
 ## Key capabilities
 
-### Dashboard editor
+### Creating and editing dashboards
 
-Gather each team's indicators into dashboards that are easy to consult.
+Organize each team's indicators in configurable dashboards and panels. Combine visualizations in a single view that makes information easier to review and monitor.
 
-[View the feature](/en/productos/ifindit-dashboard/#dashboard-0077)
+### Exploration with interactive filters
 
-### Interactive filters
+Apply filters by category, date, numeric value or text to narrow the data in a dashboard. Explore different segments of the information and answer specific questions within the same view.
 
-Explore specific questions from different perspectives without rebuilding the dashboard.
+### Visualization with charts, maps and tables
 
-[View the feature](/en/productos/ifindit-dashboard/#dashboard-0068)
+Select charts, maps and tables to suit the data you need to analyze. Compare values, observe trends and explore geographical differences through visualizations that show the information from different perspectives.
 
-### Charts, maps and tables
+### Data catalog integration
 
-Identify trends, comparisons and geographical differences more clearly.
+Connect panels to the sources registered in IFINDIT DATA CATALOG. This integration lets you use catalog data to build and manage dashboard visualizations.
 
-[View the feature](/en/productos/ifindit-dashboard/#dashboard-0122)
+### Dashboard publishing and result exports
 
-### Data connected to the catalog
+Set a dashboard as public or private and publish it for viewing. Export records and visualizations in formats such as PNG, PDF, CSV or Excel to share results with other teams.
 
-Use identified data sources and bring different origins together in one view.
+### AI interpretation of charts
 
-[View the feature](/en/productos/ifindit-dashboard/#dashboard-0051)
-
-### Publishing and exporting
-
-Share insights and help other teams consult the information.
-
-[View the feature](/en/productos/ifindit-dashboard/#dashboard-0048)
-
-### AI interpretations
-
-Accompany charts with explanations that make them easier to interpret.
-
-[View the feature](/en/productos/ifindit-dashboard/#dashboard-0106)
-
-## Feature catalog
-
-[View all features of IFINDIT DASHBOARD](/en/productos/ifindit-dashboard/#caracteristicas)
-
-The catalog lets you search across categories and browse paginated results.
+Generate natural-language explanations for selected charts using generative artificial intelligence. These interpretations accompany the visualization and help teams understand the information presented.
 
 ## Shared capabilities
 

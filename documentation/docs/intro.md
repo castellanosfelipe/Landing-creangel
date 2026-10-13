@@ -6,39 +6,39 @@ sidebar_position: 1
 slug: "/"
 ---
 
-Consulte las capacidades de los cinco productos de IFINDIT y de las dos capas compartidas de la plataforma. Cada documento enlaza con las características publicadas del producto, los documentos descargables y el centro de soporte.
+Esta documentación presenta las capacidades de los cinco productos de IFINDIT y las dos capas compartidas de la plataforma. Consulte cada sección para conocer sus funciones y acceder a los documentos descargables y al centro de soporte.
 
 ## Productos
 
 ### [IFINDIT SEARCH](./ifindit-search.md)
 
-Encuentre la información dispersa de su organización desde una sola búsqueda y dé a sus equipos el contexto que necesitan para avanzar.
+Encuentre información de distintas fuentes de su organización desde una sola búsqueda y revise los resultados con filtros y contexto.
 
 ### [IFINDIT DASHBOARD](./ifindit-dashboard.md)
 
-Convierta datos de distintas fuentes en indicadores claros, identifique tendencias y comparta hallazgos para que sus equipos decidan con más contexto.
+Reúna datos de distintas fuentes en tableros con gráficos, mapas y tablas para explorar indicadores, identificar tendencias y compartir resultados.
 
 ### [IFINDIT DATA CATALOG](./ifindit-data-catalog.md)
 
-Alinee a sus equipos sobre el significado de los datos, localice la información disponible y consulte las reglas que orientan su uso.
+Documente activos, términos y políticas para que sus equipos encuentren los datos disponibles y comprendan su significado y las reglas de uso.
 
 ### [IFINDIT CHATGEN](./ifindit-chatgen.md)
 
-Ponga el conocimiento de su organización al alcance de sus equipos con asistentes que facilitan la consulta de información y apoyan tareas.
+Consulte el conocimiento de su organización mediante asistentes que responden a partir de documentos, mantienen el contexto de la conversación y utilizan herramientas conectadas.
 
 ### [IFINDIT CLASIFICADOR DE PQRS](./ifindit-clasificador-pqrs.md)
 
-Organice las comunicaciones recibidas, identifique datos clave y consulte el estado de cada documento para orientar su revisión y gestión.
+Cargue y clasifique comunicaciones, extraiga sus datos clave y consulte el estado y el historial de cada documento durante su gestión.
 
 ## Base compartida de la plataforma
 
 ### [IFINDIT LAKEHOUSE](./lakehouse.md)
 
-Integra almacenamiento de datos, consultas SQL, procesamiento analítico y acceso a conjuntos de datos de distintos formatos.
+IFINDIT LAKEHOUSE reúne almacenamiento, consultas SQL y procesamiento analítico para trabajar con conjuntos de datos en distintos formatos.
 
 ### [IFINDIT Auth IAM](./auth-iam.md)
 
-Gestiona identidades, organizaciones, grupos, roles y permisos de acceso a las aplicaciones y servicios de la plataforma.
+IFINDIT Auth IAM permite gestionar identidades, organizaciones, grupos, roles y permisos para administrar el acceso a las aplicaciones y servicios de la plataforma.
 
 ## Recursos y atención
 

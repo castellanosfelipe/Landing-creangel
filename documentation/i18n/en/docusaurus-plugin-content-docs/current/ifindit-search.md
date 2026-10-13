@@ -10,47 +10,29 @@ Find information scattered across your organization with a single search, and gi
 
 ## Key capabilities
 
-### One search across multiple sources
+### Unified search across multiple sources
 
-Find information from different sources with a single search.
+Search content from connected sources, such as document repositories, websites and databases, through a single search interface. Bring scattered information together so you can find it without visiting each system separately.
 
-[View the feature](/en/productos/ifindit-search/#search-0015)
+### Filters and result context
 
-### Results with context
+Narrow results with filters and review content excerpts with search terms highlighted. This context helps you assess which documents answer your query before opening them.
 
-Identify useful results with filters and visible context.
+### Language, synonyms and relevance
 
-[View the feature](/en/productos/ifindit-search/#search-0089)
+Configure synonyms, spelling correction and language settings to adapt search to your organization's vocabulary. Adjust the weights of indexed fields to influence the relevance of results.
 
-### Language and relevance
+### Indexing, metadata and updates
 
-Discover related results even when search terms, spelling or language change.
+Add source content to the search index and schedule updates. Extract metadata, such as titles, authors and dates, to describe the information and make it easier to find.
 
-[View the feature](/en/productos/ifindit-search/#search-0009)
+### Vector search by similarity
 
-### Indexing and enrichment
+Use vector representations of text to retrieve content with similar meaning. This capability extends search beyond exact matches and helps you find information related to your query.
 
-Keep content available as it changes in its source systems.
+### Search configuration and access control
 
-[View the feature](/en/productos/ifindit-search/#search-0093)
-
-### Vector search
-
-Discover related content by meaning, beyond exact keyword matches.
-
-[View the feature](/en/productos/ifindit-search/#search-0229)
-
-### Administration and access
-
-Tailor the experience and manage access according to each team's permissions.
-
-[View the feature](/en/productos/ifindit-search/#search-0080)
-
-## Feature catalog
-
-[View all features of IFINDIT SEARCH](/en/productos/ifindit-search/#caracteristicas)
-
-The catalog lets you search across categories and browse paginated results.
+Configure the search interface and its components, such as autocomplete and suggestions. Manage user authentication and access according to the permissions defined for each team.
 
 ## Shared capabilities
 

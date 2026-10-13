@@ -10,47 +10,29 @@ Build a shared understanding of your data, find available information and consul
 
 ## Key capabilities
 
-### Asset inventory
+### Information asset inventory
 
-Know which information assets exist and how they are described.
+Register data sources, dashboards, analytical panels and search engines in a shared inventory. Describe each asset with its metadata and relationships so teams can identify what information exists and how it is organized.
 
-[View the feature](/en/productos/ifindit-data-catalog/#catalog-0080)
+### Shared glossaries and definitions
 
-### Shared vocabulary
+Maintain an organizational glossary and business glossaries with shared terms and definitions. Link these concepts to data assets to give teams a common reference for understanding what the information means.
 
-Share consistent definitions to reduce differences in interpretation between teams.
+### Data policies and business rules
 
-[View the feature](/en/productos/ifindit-data-catalog/#catalog-0013)
+Document the policies that guide data management and the business rules that set conditions or restrictions. Consult these criteria to understand how information should be managed and which requirements the data must meet.
 
-### Policies and rules
+### Schemas and asset relationships
 
-Give data context with the policies and rules that guide its use.
+Review source schemas and fields, along with related terms and assets. These connections help you understand the structure of the data and its relationship to the concepts used by your organization.
 
-[View the feature](/en/productos/ifindit-data-catalog/#catalog-0064)
+### Glossary imports and catalog search
 
-### Data relationships
+Import glossaries and terms from Excel files to add or update existing definitions. Find documented entities using text queries, autocomplete and filters, and browse the catalog results.
 
-Understand how sources, fields and business terms relate to one another.
+### Access control and activity traceability
 
-[View the feature](/en/productos/ifindit-data-catalog/#catalog-0087)
-
-### Importing and searching
-
-Bring in existing definitions and find documented information.
-
-[View the feature](/en/productos/ifindit-data-catalog/#catalog-0041)
-
-### Permissions and traceability
-
-Manage access and review the history of changes in the catalog.
-
-[View the feature](/en/productos/ifindit-data-catalog/#catalog-0109)
-
-## Feature catalog
-
-[View all features of IFINDIT DATA CATALOG](/en/productos/ifindit-data-catalog/#caracteristicas)
-
-The catalog lets you search across categories and browse paginated results.
+Manage catalog access and permissions for users and groups. Review authentication and action logs to track user activity and examine operations performed on the information.
 
 ## Shared capabilities
 

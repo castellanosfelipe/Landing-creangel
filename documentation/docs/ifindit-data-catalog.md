@@ -10,47 +10,29 @@ Alinee a sus equipos sobre el significado de los datos, localice la información
 
 ## Capacidades principales
 
-### Inventario de activos
+### Inventario de activos de información
 
-Sepa qué activos de información existen y cómo están descritos.
+Registre fuentes de datos, tableros, paneles analíticos y motores de búsqueda en un inventario común. Describa cada activo con sus metadatos y relaciones para que los equipos identifiquen qué información existe y cómo se organiza.
 
-[Consultar la característica](/productos/ifindit-data-catalog/#catalog-0080)
+### Glosarios y definiciones compartidas
 
-### Vocabulario compartido
+Mantenga un glosario organizacional y glosarios de negocio con términos y definiciones compartidas. Vincule esos conceptos con los activos de datos para dar a los equipos una referencia común sobre el significado de la información.
 
-Comparta definiciones consistentes para reducir interpretaciones distintas entre equipos.
+### Políticas de datos y reglas de negocio
 
-[Consultar la característica](/productos/ifindit-data-catalog/#catalog-0013)
+Documente las políticas que orientan la gestión de los datos y las reglas de negocio que establecen condiciones o restricciones. Consulte estos criterios para comprender cómo debe gestionarse la información y qué requisitos deben cumplir los datos.
 
-### Políticas y reglas
+### Esquemas y relaciones entre activos
 
-Dé contexto a los datos con las políticas y reglas que orientan su uso.
+Consulte el esquema y los campos de las fuentes, junto con los términos y activos relacionados. Estas conexiones permiten comprender la estructura de los datos y su vínculo con los conceptos que utiliza la organización.
 
-[Consultar la característica](/productos/ifindit-data-catalog/#catalog-0064)
+### Importación de glosarios y búsqueda en el catálogo
 
-### Relaciones entre datos
+Importe glosarios y términos desde archivos Excel para incorporar o actualizar definiciones existentes. Encuentre las entidades documentadas mediante consultas de texto, autocompletado y filtros, y recorra los resultados del catálogo.
 
-Comprenda cómo se relacionan fuentes, campos y términos de negocio.
+### Control de acceso y trazabilidad de actividades
 
-[Consultar la característica](/productos/ifindit-data-catalog/#catalog-0087)
-
-### Importación y búsqueda
-
-Incorpore definiciones existentes y encuentre la información documentada.
-
-[Consultar la característica](/productos/ifindit-data-catalog/#catalog-0041)
-
-### Permisos y trazabilidad
-
-Gestione el acceso y consulte la trazabilidad de cambios en el catálogo.
-
-[Consultar la característica](/productos/ifindit-data-catalog/#catalog-0109)
-
-## Catálogo de características
-
-[Ver todas las características de IFINDIT DATA CATALOG](/productos/ifindit-data-catalog/#caracteristicas)
-
-El catálogo permite buscar en todas las categorías y recorrer los resultados por páginas.
+Gestione el acceso al catálogo y los permisos de los usuarios y grupos. Consulte los registros de autenticación y de acciones realizadas para seguir la actividad de los usuarios y revisar las operaciones sobre la información.
 
 ## Capacidades compartidas
 

@@ -6,51 +6,33 @@ sidebar_position: 7
 slug: "/plataforma/lakehouse"
 ---
 
-It integrates data storage, SQL queries, analytical processing and access to data sets in different formats.
+IFINDIT LAKEHOUSE brings together storage, SQL queries and analytical processing to work with datasets in different formats.
 
 ## Key capabilities
 
-### Data queries
+### Querying data with SQL
 
-Answer questions about your data through reusable queries.
+Query datasets with SQL to retrieve the information you need for each analysis.
 
-[View the feature](/en/plataforma/lakehouse/#lakehouse-0013)
+### Querying earlier data versions
 
-### Time travel
+Query earlier table snapshots to repeat an analysis with the same data and review changes between versions.
 
-Review earlier versions and reproduce analyses in the same context.
+### Columnar storage
 
-[View the feature](/en/plataforma/lakehouse/#lakehouse-0016)
+Run analytical queries with columnar storage designed to optimize data scans and aggregations.
 
-### Storage format
+### Exporting query results
 
-Explore large datasets through analytical queries.
+Export query results as CSV, JSON or XML files to share them or use them in other tools.
 
-[View the feature](/en/plataforma/lakehouse/#lakehouse-0027)
+### Loading datasets
 
-### Data export
+Upload datasets through the web interface for processing in the data lake or data warehouse.
 
-Share results in formats that other teams and tools can use.
+### Integration with analytics tools
 
-[View the feature](/en/plataforma/lakehouse/#lakehouse-0037)
-
-### Data loading
-
-Bring in new datasets to support analysis.
-
-[View the feature](/en/plataforma/lakehouse/#lakehouse-0041)
-
-### Integration
-
-Connect data to the analysis tools your organization already uses.
-
-[View the feature](/en/plataforma/lakehouse/#lakehouse-0043)
-
-## Feature catalog
-
-[View all features of IFINDIT LAKEHOUSE](/en/plataforma/lakehouse/#caracteristicas)
-
-The catalog lets you search across categories and browse paginated results.
+Connect IFINDIT LAKEHOUSE to tools such as Tableau and Power BI through its REST API.
 
 ## IFINDIT platform
 

@@ -12,45 +12,27 @@ Ponga el conocimiento de su organización al alcance de sus equipos con asistent
 
 ### Respuestas basadas en documentos
 
-Consulte el conocimiento documentado mediante respuestas basadas en las fuentes disponibles.
-
-[Consultar la característica](/productos/ifindit-chatgen/#chatgen-0041)
+Formule preguntas sobre el conocimiento documentado de su organización y obtenga respuestas apoyadas en las fuentes disponibles. La búsqueda por significado ayuda a recuperar información relacionada con la consulta.
 
 ### Agentes y herramientas
 
-Acompañe tareas con asistentes que pueden consultar información y utilizar herramientas conectadas.
+Use asistentes que combinan la consulta de información con herramientas conectadas para apoyar las tareas de sus equipos. El tipo de agente y las herramientas disponibles se definen en su configuración.
 
-[Consultar la característica](/productos/ifindit-chatgen/#chatgen-0016)
+### Widgets personalizados
 
-### Widgets a la medida
-
-Adapte cada experiencia de conversación al contexto y necesidades de sus usuarios.
-
-[Consultar la característica](/productos/ifindit-chatgen/#chatgen-0053)
+Configure widgets de conversación para integrarlos en sitios web y aplicaciones. Ajuste el mensaje de bienvenida, las entradas disponibles y el comportamiento del asistente según sus usuarios.
 
 ### Conversaciones con contexto
 
-Mantenga el hilo de la conversación para dar continuidad a cada consulta.
-
-[Consultar la característica](/productos/ifindit-chatgen/#chatgen-0005)
+Consulte el historial y continúe una conversación con el contexto de los mensajes anteriores. La configuración del asistente permite definir cuánto contexto se incluye en cada respuesta.
 
 ### WhatsApp, voz e idiomas
 
-Atienda interacciones en más canales, por voz y en distintos idiomas.
+Ofrezca a sus usuarios distintas formas de conversar con el asistente: WhatsApp, texto y voz. La detección de idioma permite adaptar las respuestas al idioma de la consulta.
 
-[Consultar la característica](/productos/ifindit-chatgen/#chatgen-0080)
+### Acceso y supervisión
 
-### Administración y control
-
-Controle el acceso, el uso y la actividad de los asistentes.
-
-[Consultar la característica](/productos/ifindit-chatgen/#chatgen-0055)
-
-## Catálogo de características
-
-[Ver todas las características de IFINDIT CHATGEN](/productos/ifindit-chatgen/#caracteristicas)
-
-El catálogo permite buscar en todas las categorías y recorrer los resultados por páginas.
+Administre quién puede acceder a los asistentes y consulte su actividad registrada. Supervise el consumo de tokens de las conversaciones para dar seguimiento al uso de los modelos de lenguaje.
 
 ## Capacidades compartidas
 

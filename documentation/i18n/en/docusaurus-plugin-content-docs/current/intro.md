@@ -6,39 +6,39 @@ sidebar_position: 1
 slug: "/"
 ---
 
-Explore the capabilities of the five IFINDIT products and the two shared platform layers. Each document links to the published product features, downloadable documents and support center.
+This documentation presents the capabilities of the five IFINDIT products and the two shared platform layers. Explore each section to learn about its functions and access downloadable documents and the support center.
 
 ## Products
 
 ### [IFINDIT SEARCH](./ifindit-search.md)
 
-Find information scattered across your organization with a single search, and give your teams the context they need to move forward.
+Find information from different sources across your organization with a single search, and review results using filters and context.
 
 ### [IFINDIT DASHBOARD](./ifindit-dashboard.md)
 
-Turn data from different sources into clear indicators, identify trends and share insights so your teams can make better-informed decisions.
+Bring data from different sources into dashboards with charts, maps and tables to explore indicators, identify trends and share results.
 
 ### [IFINDIT DATA CATALOG](./ifindit-data-catalog.md)
 
-Build a shared understanding of your data, find available information and consult the rules that guide its use.
+Document assets, terms and policies so your teams can find available data and understand its meaning and the rules for its use.
 
 ### [IFINDIT CHATGEN](./ifindit-chatgen.md)
 
-Put your organization's knowledge within reach through assistants that help your teams find information and complete tasks.
+Explore your organization's knowledge through assistants that answer from documents, maintain conversation context and use connected tools.
 
 ### [IFINDIT PQRS CLASSIFIER](./ifindit-clasificador-pqrs.md)
 
-Organize incoming communications, identify key information and track each document to support review and processing.
+Upload and classify communications, extract key information, and review each document's status and history throughout processing.
 
 ## Shared platform foundation
 
 ### [IFINDIT LAKEHOUSE](./lakehouse.md)
 
-It integrates data storage, SQL queries, analytical processing and access to data sets in different formats.
+IFINDIT LAKEHOUSE brings together storage, SQL queries and analytical processing to work with datasets in different formats.
 
 ### [IFINDIT Auth IAM](./auth-iam.md)
 
-Manages identities, organizations, groups, roles and permissions to access the applications and services of the platform.
+IFINDIT Auth IAM lets you manage identities, organizations, groups, roles and permissions to control access to the platform's applications and services.
 
 ## Resources and support
 

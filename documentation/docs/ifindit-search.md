@@ -10,47 +10,29 @@ Encuentre la información dispersa de su organización desde una sola búsqueda 
 
 ## Capacidades principales
 
-### Una búsqueda sobre varias fuentes
+### Búsqueda unificada en distintas fuentes
 
-Encuentre información de distintas fuentes desde una sola búsqueda.
+Consulte desde un mismo buscador el contenido de las fuentes conectadas, como repositorios documentales, sitios web y bases de datos. Reúna información dispersa para localizarla sin recorrer cada sistema por separado.
 
-[Consultar la característica](/productos/ifindit-search/#search-0015)
+### Filtros y contexto de los resultados
 
-### Resultados con contexto
+Delimite los resultados con filtros y revise fragmentos del contenido con los términos de búsqueda resaltados. Este contexto permite evaluar qué documentos responden a la consulta antes de abrirlos.
 
-Reconozca los resultados útiles con filtros y contexto visible.
+### Idioma, sinónimos y relevancia
 
-[Consultar la característica](/productos/ifindit-search/#search-0089)
+Configure sinónimos, corrección ortográfica y opciones por idioma para adaptar la búsqueda al vocabulario de su organización. Ajuste el peso de los campos del índice para orientar la relevancia de los resultados.
 
-### Lenguaje y relevancia
+### Indexación, metadatos y actualización
 
-Explore resultados relacionados aunque cambien los términos, la ortografía o el idioma.
+Incorpore el contenido de las fuentes al índice de búsqueda y programe su actualización. Extraiga metadatos, como título, autor y fechas, para describir la información y facilitar su consulta.
 
-[Consultar la característica](/productos/ifindit-search/#search-0009)
+### Búsqueda vectorial por similitud
 
-### Indexación y enriquecimiento
+Use representaciones vectoriales del texto para recuperar contenido similar por su significado. Esta capacidad amplía la búsqueda más allá de las coincidencias literales y ayuda a encontrar información relacionada con la consulta.
 
-Mantenga disponible el contenido a medida que cambia en sus fuentes.
+### Configuración del buscador y control de acceso
 
-[Consultar la característica](/productos/ifindit-search/#search-0093)
-
-### Búsqueda vectorial
-
-Descubra contenido relacionado por su significado, más allá de las palabras exactas.
-
-[Consultar la característica](/productos/ifindit-search/#search-0229)
-
-### Administración y acceso
-
-Ajuste la experiencia y gestione el acceso según los permisos de cada equipo.
-
-[Consultar la característica](/productos/ifindit-search/#search-0080)
-
-## Catálogo de características
-
-[Ver todas las características de IFINDIT SEARCH](/productos/ifindit-search/#caracteristicas)
-
-El catálogo permite buscar en todas las categorías y recorrer los resultados por páginas.
+Configure la apariencia y los componentes del buscador, como el autocompletado y las sugerencias. Gestione la autenticación y el acceso de los usuarios según los permisos definidos para cada equipo.
 
 ## Capacidades compartidas
 

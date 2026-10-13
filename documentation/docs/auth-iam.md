@@ -6,51 +6,33 @@ sidebar_position: 8
 slug: "/plataforma/auth-iam"
 ---
 
-Gestiona identidades, organizaciones, grupos, roles y permisos de acceso a las aplicaciones y servicios de la plataforma.
+IFINDIT Auth IAM permite gestionar identidades, organizaciones, grupos, roles y permisos para administrar el acceso a las aplicaciones y servicios de la plataforma.
 
 ## Capacidades principales
 
-### Integración LDAP
+### Autenticación con directorios LDAP
 
-Simplifique el acceso con identidades y grupos de directorios corporativos.
+Sincronice usuarios y grupos de sus directorios LDAP y utilícelos en la autenticación de la plataforma.
 
-[Consultar la característica](/plataforma/auth-iam/#iam-0020)
+### Control detallado de permisos
 
-### Control de Acceso Granular
+Defina el acceso a los recursos mediante roles, grupos y listas de control de acceso (ACL).
 
-Limite el acceso de cada persona a los recursos autorizados.
+### Gestión de varias organizaciones
 
-[Consultar la característica](/plataforma/auth-iam/#iam-0078)
+Administre varias organizaciones en una misma plataforma, con datos y configuraciones separados para cada una.
 
-### Arquitectura Multi-Tenant
+### Integración mediante API REST
 
-Administre varias organizaciones con datos y configuraciones separados.
+Integre la gestión de identidades con aplicaciones cliente y sistemas externos mediante una API REST.
 
-[Consultar la característica](/plataforma/auth-iam/#iam-0087)
+### Informes y registros de auditoría
 
-### APIs RESTful
+Consulte informes y registros de auditoría para revisar la actividad de acceso y apoyar el análisis de seguridad.
 
-Conecte la gestión de identidades con otras aplicaciones y servicios.
+### Personalización del acceso web
 
-[Consultar la característica](/plataforma/auth-iam/#iam-0100)
-
-### Reportes de Auditoría
-
-Revise actividad y registros de acceso para apoyar el control.
-
-[Consultar la característica](/plataforma/auth-iam/#iam-0120)
-
-### Autenticador Personalizable
-
-Mantenga una experiencia de ingreso coherente con su organización.
-
-[Consultar la característica](/plataforma/auth-iam/#iam-0126)
-
-## Catálogo de características
-
-[Ver todas las características de IFINDIT Auth IAM](/plataforma/auth-iam/#caracteristicas)
-
-El catálogo permite buscar en todas las categorías y recorrer los resultados por páginas.
+Configure los elementos del autenticador web para adaptar la experiencia de ingreso a su organización.
 
 ## Plataforma IFINDIT
 

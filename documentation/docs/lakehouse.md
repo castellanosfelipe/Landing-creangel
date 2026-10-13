@@ -6,51 +6,33 @@ sidebar_position: 7
 slug: "/plataforma/lakehouse"
 ---
 
-Integra almacenamiento de datos, consultas SQL, procesamiento analítico y acceso a conjuntos de datos de distintos formatos.
+IFINDIT LAKEHOUSE reúne almacenamiento, consultas SQL y procesamiento analítico para trabajar con conjuntos de datos en distintos formatos.
 
 ## Capacidades principales
 
-### Consulta de datos
+### Consulta de datos con SQL
 
-Responda preguntas sobre sus datos mediante consultas reutilizables.
+Consulte conjuntos de datos mediante SQL para obtener la información que necesita en cada análisis.
 
-[Consultar la característica](/plataforma/lakehouse/#lakehouse-0013)
+### Consulta de versiones anteriores
 
-### Viaje en el tiempo
+Acceda a versiones anteriores de una tabla para repetir un análisis con los mismos datos y revisar los cambios entre versiones.
 
-Revise versiones anteriores y reproduzca análisis con el mismo contexto.
+### Almacenamiento en columnas
 
-[Consultar la característica](/plataforma/lakehouse/#lakehouse-0016)
+Procese consultas analíticas con almacenamiento en columnas, diseñado para optimizar el escaneo y la agregación de datos.
 
-### Formato de almacenamiento
+### Exportación de resultados
 
-Explore grandes conjuntos de datos mediante consultas analíticas.
+Exporte los resultados de las consultas en archivos CSV, JSON o XML para compartirlos o utilizarlos en otras herramientas.
 
-[Consultar la característica](/plataforma/lakehouse/#lakehouse-0027)
+### Carga de conjuntos de datos
 
-### Volcado de datos
+Cargue conjuntos de datos desde la interfaz web para procesarlos en el lago o la bodega de datos.
 
-Comparta resultados en formatos que pueden usar otras áreas y herramientas.
+### Integración con herramientas de análisis
 
-[Consultar la característica](/plataforma/lakehouse/#lakehouse-0037)
-
-### Carga de información
-
-Incorpore nuevos conjuntos de datos para ponerlos al servicio del análisis.
-
-[Consultar la característica](/plataforma/lakehouse/#lakehouse-0041)
-
-### integración
-
-Lleve los datos a las herramientas de análisis que ya utiliza su organización.
-
-[Consultar la característica](/plataforma/lakehouse/#lakehouse-0043)
-
-## Catálogo de características
-
-[Ver todas las características de IFINDIT LAKEHOUSE](/plataforma/lakehouse/#caracteristicas)
-
-El catálogo permite buscar en todas las categorías y recorrer los resultados por páginas.
+Conecte IFINDIT LAKEHOUSE con herramientas como Tableau y Power BI mediante su API REST.
 
 ## Plataforma IFINDIT
 

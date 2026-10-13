@@ -6,51 +6,33 @@ sidebar_position: 8
 slug: "/plataforma/auth-iam"
 ---
 
-Manages identities, organizations, groups, roles and permissions to access the applications and services of the platform.
+IFINDIT Auth IAM lets you manage identities, organizations, groups, roles and permissions to control access to the platform's applications and services.
 
 ## Key capabilities
 
-### LDAP integration
+### LDAP directory authentication
 
-Simplify access with identities and groups from corporate directories.
+Synchronize users and groups from your LDAP directories and use them for platform authentication.
 
-[View the feature](/en/plataforma/auth-iam/#iam-0020)
+### Granular access permissions
 
-### Granular access control
+Define access to resources through roles, groups and access control lists (ACLs).
 
-Limit each person's access to authorized resources.
+### Managing multiple organizations
 
-[View the feature](/en/plataforma/auth-iam/#iam-0078)
+Manage multiple organizations in one platform, with separate data and configuration for each.
 
-### Multi-tenant architecture
+### Integration through REST APIs
 
-Manage multiple organizations with separate data and configuration.
+Integrate identity management with client applications and external systems through a REST API.
 
-[View the feature](/en/plataforma/auth-iam/#iam-0087)
+### Audit reports and logs
 
-### RESTful APIs
+Review audit reports and logs to examine access activity and support security analysis.
 
-Connect identity management with other applications and services.
+### Customizable web sign-in
 
-[View the feature](/en/plataforma/auth-iam/#iam-0100)
-
-### Audit reports
-
-Review activity and access records to support oversight.
-
-[View the feature](/en/plataforma/auth-iam/#iam-0120)
-
-### Customizable authenticator
-
-Keep the sign-in experience consistent with your organization.
-
-[View the feature](/en/plataforma/auth-iam/#iam-0126)
-
-## Feature catalog
-
-[View all features of IFINDIT Auth IAM](/en/plataforma/auth-iam/#caracteristicas)
-
-The catalog lets you search across categories and browse paginated results.
+Configure the web authenticator's elements to adapt the sign-in experience to your organization.
 
 ## IFINDIT platform
 

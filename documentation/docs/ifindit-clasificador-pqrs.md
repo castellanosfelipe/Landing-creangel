@@ -12,45 +12,27 @@ Organice las comunicaciones recibidas, identifique datos clave y consulte el est
 
 ### Carga de documentos
 
-Reúna comunicaciones en distintos formatos para iniciar su revisión.
+Cargue comunicaciones en PDF, imágenes o documentos de texto para iniciar su revisión. Puede seleccionar varios archivos y revisar la lista antes de confirmar la carga.
 
-[Consultar la característica](/productos/ifindit-clasificador-pqrs/#pqrs-0008)
+### Reconocimiento de texto con OCR
 
-### Normalización con OCR
+Convierta el contenido de documentos escaneados e imágenes en texto que el sistema pueda analizar. El reconocimiento óptico de caracteres (OCR) se aplica a los documentos que lo requieren.
 
-Haga legibles los documentos escaneados y aproveche su contenido.
+### Extracción de datos clave
 
-[Consultar la característica](/productos/ifindit-clasificador-pqrs/#pqrs-0029)
-
-### Extracción de información
-
-Revise cada comunicación con los datos clave extraídos de su contenido.
-
-[Consultar la característica](/productos/ifindit-clasificador-pqrs/#pqrs-0030)
+Consulte información extraída del contenido, como remitente, destinatario, asunto, resumen y solicitud. Estos datos reúnen el contexto de cada comunicación para apoyar su revisión.
 
 ### Clasificación de comunicaciones
 
-Organice oficios y trámites según el contenido y la terminología de su proceso.
+Organice las comunicaciones por tipo y subcategoría a partir de su contenido. La clasificación distingue entre oficios y trámites y aplica las categorías correspondientes.
 
-[Consultar la característica](/productos/ifindit-clasificador-pqrs/#pqrs-0026)
+### Seguimiento del procesamiento
 
-### Seguimiento por etapas
-
-Vea en qué etapa está cada documento y atienda oportunamente los errores.
-
-[Consultar la característica](/productos/ifindit-clasificador-pqrs/#pqrs-0039)
+Siga el avance de cada documento durante la normalización del contenido, la extracción de datos y la clasificación. Consulte su estado e identifique los errores que requieren atención.
 
 ### Búsqueda y auditoría
 
-Encuentre comunicaciones y consulte su información e historial cuando lo necesite.
-
-[Consultar la característica](/productos/ifindit-clasificador-pqrs/#pqrs-0054)
-
-## Catálogo de características
-
-[Ver todas las características de IFINDIT CLASIFICADOR DE PQRS](/productos/ifindit-clasificador-pqrs/#caracteristicas)
-
-El catálogo permite buscar en todas las categorías y recorrer los resultados por páginas.
+Busque comunicaciones por palabras de su contenido o mediante filtros y consulte sus datos extraídos. La información de auditoría muestra quién creó o modificó por última vez el registro y las fechas correspondientes.
 
 ## Capacidades compartidas
 

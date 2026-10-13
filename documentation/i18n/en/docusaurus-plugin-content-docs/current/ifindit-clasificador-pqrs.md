@@ -12,45 +12,27 @@ Organize incoming communications, identify key information and track each docume
 
 ### Document uploads
 
-Gather communications in different formats to begin reviewing them.
+Upload communications as PDFs, images or text documents to begin reviewing them. Select multiple files and review the list before confirming the upload.
 
-[View the feature](/en/productos/ifindit-clasificador-pqrs/#pqrs-0008)
+### Text recognition with OCR
 
-### OCR normalization
+Convert scanned documents and images into text the system can analyze. Optical character recognition (OCR) is applied to documents that need it.
 
-Make scanned documents readable and use their content.
+### Key information extraction
 
-[View the feature](/en/productos/ifindit-clasificador-pqrs/#pqrs-0029)
-
-### Information extraction
-
-Review each communication alongside key information extracted from its content.
-
-[View the feature](/en/productos/ifindit-clasificador-pqrs/#pqrs-0030)
+Review information extracted from the content, such as the sender, recipient, subject, summary and request. These details provide context for reviewing each communication.
 
 ### Communication classification
 
-Organize official communications and procedures according to your process's content and terminology.
+Organize communications by type and subcategory based on their content. Classification distinguishes between formal correspondence and administrative requests and applies the corresponding categories.
 
-[View the feature](/en/productos/ifindit-clasificador-pqrs/#pqrs-0026)
+### Processing progress
 
-### Processing stages
+Track each document through content normalization, information extraction and classification. Review its status and identify errors that need attention.
 
-See each document's processing stage and address errors promptly.
+### Search and audit details
 
-[View the feature](/en/productos/ifindit-clasificador-pqrs/#pqrs-0039)
-
-### Search and audit
-
-Find communications and consult their information and history when needed.
-
-[View the feature](/en/productos/ifindit-clasificador-pqrs/#pqrs-0054)
-
-## Feature catalog
-
-[View all features of IFINDIT PQRS CLASSIFIER](/en/productos/ifindit-clasificador-pqrs/#caracteristicas)
-
-The catalog lets you search across categories and browse paginated results.
+Search communications by content or filters and review their extracted information. Audit details show who created or last modified each record and when.
 
 ## Shared capabilities
 
