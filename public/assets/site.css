@@ -100,7 +100,7 @@ button:disabled,input:disabled,select:disabled,textarea:disabled { cursor:not-al
 .logos a { flex:1 1 140px; display:flex; justify-content:center; align-items:center; padding:12px 8px; min-height:68px; }
 .logos img { height:48px; width:168px; object-fit:contain; }
 .home-trust .logos { margin-top:0; padding-block:16px; }
-/* Entity logos: two equal groups form one slow, seamless leftward loop. */
+/* Entity logos: three equal groups form one slow, seamless leftward loop. */
 .home-trust .logo-carousel {
   --logo-height:clamp(32px,9vw,48px);
   --logo-gap:40px;
@@ -138,7 +138,7 @@ button:disabled,input:disabled,select:disabled,textarea:disabled { cursor:not-al
 .home-trust .logo-carousel .logos:focus-within { overflow-x:auto; }
 .logo-carousel .logos:focus-within .logos-track { animation:none; transform:none; }
 .logo-carousel .logos a:focus-visible { outline:2px solid var(--blue); outline-offset:-2px; border-radius:4px; }
-@keyframes logos-slide-left { to { transform:translate3d(-50%,0,0); } }
+@keyframes logos-slide-left { to { transform:translate3d(-33.3333333333%,0,0); } }
 @media (hover:hover) { .logo-carousel:hover .logos-track { animation-play-state:paused; } }
 @media (prefers-reduced-motion:reduce) {
   .home-trust .logo-carousel[data-carousel-ready] .logos { overflow-x:auto; }

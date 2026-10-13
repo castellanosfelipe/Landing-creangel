@@ -599,18 +599,21 @@ for (const carousel of document.querySelectorAll('.logo-carousel')) {
   const track = carousel.querySelector('.logos-track');
   const group = carousel.querySelector('.logo-carousel-group');
   if (!viewport || !track || !group) continue;
-  const copy = group.cloneNode(true);
-  copy.classList.add('logo-carousel-copy');
-  copy.setAttribute('aria-hidden', 'true');
-  copy.setAttribute('inert', '');
-  for (const link of copy.querySelectorAll('a')) {
-    const item = document.createElement('span');
-    item.className = 'logo-carousel-item';
-    item.append(...link.childNodes);
-    link.replaceWith(item);
+  // Two visual copies keep the viewport filled when the five-logo group is narrower.
+  for (let index = 0; index < 2; index++) {
+    const copy = group.cloneNode(true);
+    copy.classList.add('logo-carousel-copy');
+    copy.setAttribute('aria-hidden', 'true');
+    copy.setAttribute('inert', '');
+    for (const link of copy.querySelectorAll('a')) {
+      const item = document.createElement('span');
+      item.className = 'logo-carousel-item';
+      item.append(...link.childNodes);
+      link.replaceWith(item);
+    }
+    for (const image of copy.querySelectorAll('img')) image.alt = '';
+    track.append(copy);
   }
-  for (const image of copy.querySelectorAll('img')) image.alt = '';
-  track.append(copy);
   const updateCarousel = () => {
     carousel.toggleAttribute('data-carousel-ready', !scrollMotionPreference.matches);
   };
