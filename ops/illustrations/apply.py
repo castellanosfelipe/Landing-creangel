@@ -14,6 +14,12 @@ START = '<!-- product-motion:start -->'
 END = '<!-- product-motion:end -->'
 
 
+def control_icon(name, path):
+    return (f'<svg data-motion-icon="{name}" viewBox="0 0 24 24" width="20" height="20" '
+            'aria-hidden="true" focusable="false" fill="none" stroke="currentColor" '
+            f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{path}"/></svg>')
+
+
 def product_navigation(scene, catalog, current, locale, prefix):
     """Make the seven existing map cards native links without changing artwork."""
     tag = lambda name: '{' + NAMESPACE + '}' + name
@@ -152,13 +158,16 @@ def apply():
             eyebrow = 'Explore how it works' if english else 'Conozca cómo funciona'
             pause = 'Pause animation' if english else 'Pausar animación'
             expand = 'Enlarge illustration' if english else 'Ampliar ilustración'
+            pause_icon = control_icon('pause', 'M9 5v14M15 5v14')
+            play_icon = control_icon('play', 'm8 5 11 7-11 7Z')
+            expand_icon = control_icon('expand', 'M8 3H3v5m13-5h5v5M3 16v5h5m8 0h5v-5')
             block = (
                 START + '<section class="section product-motion-section" aria-labelledby="illustration-heading">'
                 '<div class="wrap"><div class="product-motion-heading"><div>'
                 f'<p class="eyebrow">{eyebrow}</p><h2 id="illustration-heading">{title}</h2>'
                 f'<p>{description}</p></div><div class="product-motion-controls" hidden>'
-                f'<button type="button" data-motion-toggle aria-pressed="false">{pause}</button>'
-                f'<button type="button" data-motion-expand>{expand}</button></div></div>'
+                f'<button type="button" data-motion-toggle data-motion-state="playing" aria-pressed="false" aria-label="{pause}" title="{pause}">{pause_icon}{play_icon}</button>'
+                f'<button type="button" data-motion-expand aria-label="{expand}" title="{expand}">{expand_icon}</button></div></div>'
                 f'<figure class="product-motion" data-motion-illustration data-motion-title="{title}">'
                 f'<div class="product-motion-canvas">{scene}</div>'
                 '</figure></div></section>' + END

@@ -42,8 +42,10 @@
     state.figure.classList.toggle('is-playing',playing);
     state.toggle.disabled = reduced;
     state.toggle.setAttribute('aria-pressed',String(paused));
-    state.toggle.textContent = reduced ? words.reduced : paused ? words.resume : words.pause;
-    state.toggle.title = reduced ? words.reducedHelp : '';
+    const label = reduced ? words.reduced : paused ? words.resume : words.pause;
+    state.toggle.setAttribute('aria-label',label);
+    state.toggle.dataset.motionState = reduced ? 'reduced' : paused ? 'paused' : 'playing';
+    state.toggle.title = reduced ? words.reducedHelp : label;
   }
 
   function updateAll() { states.forEach(update); }
@@ -180,7 +182,8 @@
     });
     if (enlarge) {
       enlarge.hidden = !supportsDialog;
-      enlarge.textContent = words.expand;
+      enlarge.setAttribute('aria-label',words.expand);
+      enlarge.title = words.expand;
       if (supportsDialog) {
         if (!dialog) makeDialog();
         enlarge.setAttribute('aria-haspopup','dialog');
