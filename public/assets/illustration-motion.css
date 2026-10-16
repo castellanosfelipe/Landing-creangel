@@ -115,6 +115,9 @@
 .product-motion.is-playing .ifm-typing:nth-of-type(3) { animation-delay:-.8s; }
 .product-motion.is-playing [data-motion-duration="40s"] { animation-duration:40s; }
 
+/* Freeze labels and their containing panels without cancelling SVG placement. */
+.ifindit-motion-graphic .ifm-fixed-label { animation:none!important; }
+
 @keyframes ifm-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
 @keyframes ifm-pulse { 0%,100% { transform:scale(.96); opacity:.6; } 50% { transform:scale(1.06); opacity:.9; } }
 @keyframes ifm-flow { to { stroke-dashoffset:-40; } }

@@ -154,6 +154,15 @@
     const enlarge = controls?.querySelector('[data-motion-expand]');
     const svg = figure.querySelector('.ifindit-motion-graphic');
     if (!toggle || !svg || figure.dataset.motionReady) continue;
+    // Moving a panel also moves its labels. Keep every text-bearing ancestor
+    // static, while independent shapes inside the panel can still animate.
+    const fixedLabels = new Set();
+    for (const text of svg.querySelectorAll('text, tspan, textPath')) {
+      for (let node = text; node && node !== svg; node = node.parentElement) {
+        fixedLabels.add(node);
+      }
+    }
+    fixedLabels.forEach(node => node.classList.add('ifm-fixed-label'));
     const state = {figure,svg,toggle,userPaused:false,expanded:false,intersecting:false};
     states.push(state);
     figure.dataset.motionReady = 'true';
