@@ -1,0 +1,180 @@
+/* The supplied artwork remains complete and readable before JavaScript runs. */
+.product-motion-section {
+  border-top:1px solid var(--line,#d7e0e8);
+  background:#f7f9fc;
+}
+.product-motion-heading {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:32px;
+  width:min(1120px,100%);
+  margin:0 auto 24px;
+}
+.product-motion-heading>div:first-child { max-width:740px; }
+.product-motion-heading .eyebrow {
+  margin-bottom:12px;
+  color:var(--blue,#12518e);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.product-motion-heading h2 { margin-bottom:16px; }
+.product-motion-heading p:last-child { margin-bottom:0; }
+.product-motion-controls {
+  display:flex;
+  flex:0 0 auto;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.product-motion-controls button,
+.illustration-dialog-close {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:44px;
+  padding:10px 14px;
+  border:1px solid #9cb5cf;
+  border-radius:4px;
+  background:#fff;
+  color:var(--blue,#12518e);
+  font-size:14px;
+  font-weight:600;
+  line-height:1.35;
+}
+.product-motion-controls button:hover:not(:disabled),
+.illustration-dialog-close:hover {
+  border-color:var(--blue,#12518e);
+  background:var(--blue,#12518e);
+  color:#fff;
+}
+.product-motion-controls button[aria-pressed="true"] {
+  border-color:var(--blue,#12518e);
+  box-shadow:inset 0 -3px var(--yellow,#fbd327);
+}
+.product-motion-controls button:disabled { color:#526274; opacity:1; }
+.product-motion {
+  width:min(1120px,100%);
+  margin:0 auto;
+}
+.product-motion-canvas {
+  overflow:hidden;
+  border:1px solid var(--line,#d7e0e8);
+  border-radius:4px;
+  background:#fff;
+  isolation:isolate;
+}
+.product-motion-canvas>.ifindit-motion-graphic {
+  display:block;
+  width:100%;
+  max-width:100%;
+  height:auto;
+  margin:0;
+}
+.product-motion figcaption {
+  max-width:90ch;
+  margin-top:14px;
+  color:#526274;
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* SVG classes and keyframes are namespaced; no inline styles are needed. */
+.ifindit-motion-graphic [class*="ifm-"] { animation:none; }
+.ifindit-motion-graphic :is(.ifm-pulse,.ifm-grow,.ifm-growx,.ifm-spin,.ifm-spark,.ifm-tw,.ifm-progress,.ifm-countdown) {
+  transform-box:fill-box;
+  transform-origin:center;
+}
+.ifindit-motion-graphic .ifm-grow { transform-origin:center bottom; }
+.ifindit-motion-graphic :is(.ifm-growx,.ifm-progress,.ifm-countdown) { transform-origin:left center; }
+.ifindit-motion-graphic .ifm-flow { stroke-dasharray:6 14; }
+.product-motion.is-playing .ifm-fl { animation:ifm-float 8s ease-in-out infinite; }
+.product-motion.is-playing .ifm-fl2 { animation:ifm-float 10s ease-in-out -3s infinite; }
+.product-motion.is-playing .ifm-fl3 { animation:ifm-float 12s ease-in-out -5s infinite; }
+.product-motion.is-playing .ifm-pulse { animation:ifm-pulse 5s ease-in-out infinite; }
+.product-motion.is-playing .ifm-flow { animation:ifm-flow 4s linear infinite; }
+.product-motion.is-playing .ifm-grow { animation:ifm-grow 9s ease-in-out infinite; }
+.product-motion.is-playing .ifm-growx { animation:ifm-growx 9s ease-in-out infinite; }
+.product-motion.is-playing .ifm-blink { animation:ifm-cursor 4s ease-in-out infinite; }
+.product-motion.is-playing .ifm-spin { animation:ifm-spin 36s linear infinite; }
+.product-motion.is-playing .ifm-draw { animation:ifm-line-emphasis 8s ease-in-out infinite; }
+.product-motion.is-playing .ifm-plug { animation:ifm-plug 7s ease-in-out infinite; }
+.product-motion.is-playing .ifm-spark { animation:ifm-spark 7s ease-in-out infinite; }
+.product-motion.is-playing .ifm-volt { animation:ifm-flow 5s linear infinite; }
+.product-motion.is-playing .ifm-tw { animation:ifm-twinkle 6s ease-in-out infinite; }
+.product-motion.is-playing .ifm-hl { animation:ifm-line-emphasis 7s ease-in-out infinite; }
+.product-motion.is-playing .ifm-status { animation:ifm-status 4s ease-in-out infinite; }
+.product-motion.is-playing .ifm-typing { animation:ifm-status 3.6s ease-in-out infinite; }
+.product-motion.is-playing .ifm-progress { animation:ifm-progress 8s ease-in-out infinite; }
+.product-motion.is-playing .ifm-countdown { animation:ifm-countdown 30s linear infinite; }
+.product-motion.is-playing :is(.ifm-tw,.ifm-flow):nth-of-type(3n) { animation-delay:-2s; }
+.product-motion.is-playing :is(.ifm-tw,.ifm-flow):nth-of-type(3n + 1) { animation-delay:-4s; }
+.product-motion.is-playing .ifm-typing:nth-of-type(2) { animation-delay:-.4s; }
+.product-motion.is-playing .ifm-typing:nth-of-type(3) { animation-delay:-.8s; }
+.product-motion.is-playing [data-motion-duration="40s"] { animation-duration:40s; }
+
+@keyframes ifm-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
+@keyframes ifm-pulse { 0%,100% { transform:scale(.96); opacity:.6; } 50% { transform:scale(1.06); opacity:.9; } }
+@keyframes ifm-flow { to { stroke-dashoffset:-40; } }
+@keyframes ifm-grow { 0%,100% { transform:scaleY(.84); } 40%,65% { transform:scaleY(1); } }
+@keyframes ifm-growx { 0%,100% { transform:scaleX(.82); } 40%,65% { transform:scaleX(1); } }
+@keyframes ifm-cursor { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+@keyframes ifm-spin { to { transform:rotate(360deg); } }
+@keyframes ifm-line-emphasis { 0%,100% { opacity:.65; } 50% { opacity:1; } }
+@keyframes ifm-plug { 0%,100% { transform:translateX(-3px); } 40%,70% { transform:translateX(0); } }
+@keyframes ifm-spark { 0%,100% { transform:scale(.9); opacity:.5; } 50% { transform:scale(1.08); opacity:1; } }
+@keyframes ifm-twinkle { 0%,100% { opacity:.6; transform:scale(.92); } 50% { opacity:1; transform:scale(1); } }
+@keyframes ifm-status { 0%,100% { opacity:.6; } 50% { opacity:1; } }
+@keyframes ifm-progress { 0%,100% { transform:scaleX(.25); } 45%,70% { transform:scaleX(1); } }
+@keyframes ifm-countdown { from { transform:scaleX(1); } to { transform:scaleX(.1); } }
+
+.illustration-dialog-open { overflow:hidden; }
+.illustration-dialog {
+  width:min(1480px,calc(100vw - 32px));
+  max-width:none;
+  max-height:calc(100dvh - 32px);
+  padding:0;
+  border:1px solid var(--line,#d7e0e8);
+  border-radius:4px;
+  background:#fff;
+  color:var(--ink,#123449);
+}
+.illustration-dialog::backdrop { background:#102738d9; }
+.illustration-dialog-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:24px;
+  padding:16px 24px;
+  border-bottom:1px solid var(--line,#d7e0e8);
+}
+.illustration-dialog-head h2 { margin:0; font-size:22px; line-height:1.35; }
+.illustration-dialog-close { flex:0 0 auto; }
+.illustration-dialog-note { margin:0; padding:12px 24px; color:#526274; font-size:14px; }
+.illustration-dialog-body { overflow:auto; max-height:calc(100dvh - 192px); overscroll-behavior:contain; }
+.illustration-dialog-body>.ifindit-motion-graphic {
+  display:block;
+  width:max(100%,1120px);
+  max-width:none;
+  height:auto;
+  margin:0;
+}
+.illustration-dialog-body .ifindit-motion-graphic [class*="ifm-"] { animation:none!important; }
+
+@media (max-width:900px) {
+  .product-motion-heading { align-items:flex-start; flex-direction:column; gap:20px; }
+  .product-motion-controls { width:100%; }
+}
+@media (max-width:540px) {
+  .product-motion-controls button { flex:1 1 auto; }
+  .illustration-dialog { width:calc(100vw - 16px); max-height:calc(100dvh - 16px); }
+  .illustration-dialog-head { gap:12px; padding:12px; }
+  .illustration-dialog-head h2 { font-size:18px; }
+  .illustration-dialog-note { padding:12px; }
+  .illustration-dialog-body { max-height:calc(100dvh - 184px); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .product-motion .ifindit-motion-graphic [class*="ifm-"] { animation:none!important; }
+}

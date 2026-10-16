@@ -1,0 +1,114 @@
+{
+  "ifindit-auth-iam": {
+    "title": {
+      "es": "IFINDIT Auth IAM en acción",
+      "en": "IFINDIT Auth IAM in action"
+    },
+    "description": {
+      "es": "Explore el acceso a la plataforma mediante identidades, roles, permisos y auditoría.",
+      "en": "Explore platform access through identities, roles, permissions and audit logs."
+    },
+    "caption": {
+      "es": "Ilustración de uso con datos demostrativos; no representa resultados reales ni una sesión activa.",
+      "en": "Illustrative use case with demonstration data; it does not show actual results or a live session."
+    },
+    "route": "plataforma/auth-iam/",
+    "asset": "creangel-ifindit-auth-iam.svg"
+  },
+  "ifindit-chatgen": {
+    "title": {
+      "es": "IFINDIT CHATGEN en acción",
+      "en": "IFINDIT CHATGEN in action"
+    },
+    "description": {
+      "es": "Explore un asistente conectado al conocimiento, las herramientas y los canales de atención.",
+      "en": "Explore an assistant connected to knowledge, tools and support channels."
+    },
+    "caption": {
+      "es": "Ilustración de uso con datos demostrativos; no representa resultados reales ni una sesión activa.",
+      "en": "Illustrative use case with demonstration data; it does not show actual results or a live session."
+    },
+    "route": "productos/ifindit-chatgen/",
+    "asset": "creangel-ifindit-chatgen.svg"
+  },
+  "ifindit-clasificador-pqrs": {
+    "title": {
+      "es": "IFINDIT CLASIFICADOR DE PQRS en acción",
+      "en": "IFINDIT PQRS CLASSIFIER in action"
+    },
+    "description": {
+      "es": "Explore el recorrido de una comunicación desde su recepción hasta su clasificación y asignación.",
+      "en": "Explore a communication’s journey from receipt to classification and assignment."
+    },
+    "caption": {
+      "es": "Ilustración de uso con datos demostrativos; no representa resultados reales ni una sesión activa.",
+      "en": "Illustrative use case with demonstration data; it does not show actual results or a live session."
+    },
+    "route": "productos/ifindit-clasificador-pqrs/",
+    "asset": "creangel-ifindit-clasificador-pqrs.svg"
+  },
+  "ifindit-dashboard": {
+    "title": {
+      "es": "IFINDIT DASHBOARD en acción",
+      "en": "IFINDIT DASHBOARD in action"
+    },
+    "description": {
+      "es": "Explore un tablero de gestión con indicadores, alertas y envío programado de informes.",
+      "en": "Explore a management dashboard with indicators, alerts and scheduled report delivery."
+    },
+    "caption": {
+      "es": "Ilustración de uso con datos demostrativos; no representa resultados reales ni una sesión activa.",
+      "en": "Illustrative use case with demonstration data; it does not show actual results or a live session."
+    },
+    "route": "productos/ifindit-dashboard/",
+    "asset": "creangel-ifindit-dashboard.svg"
+  },
+  "ifindit-data-catalog": {
+    "title": {
+      "es": "IFINDIT DATA CATALOG en acción",
+      "en": "IFINDIT DATA CATALOG in action"
+    },
+    "description": {
+      "es": "Explore la relación entre responsables, reglas, políticas y trazabilidad del dato.",
+      "en": "Explore the relationship between owners, rules, policies and data traceability."
+    },
+    "caption": {
+      "es": "Ilustración de uso con datos demostrativos; no representa resultados reales ni una sesión activa.",
+      "en": "Illustrative use case with demonstration data; it does not show actual results or a live session."
+    },
+    "route": "productos/ifindit-data-catalog/",
+    "asset": "creangel-ifindit-data-catalog.svg"
+  },
+  "ifindit-lakehouse": {
+    "title": {
+      "es": "IFINDIT LAKEHOUSE en acción",
+      "en": "IFINDIT LAKEHOUSE in action"
+    },
+    "description": {
+      "es": "Explore cómo se conectan las fuentes, el almacenamiento y el procesamiento de datos.",
+      "en": "Explore how sources, storage and data processing connect."
+    },
+    "caption": {
+      "es": "Ilustración de uso con datos demostrativos; no representa resultados reales ni una sesión activa.",
+      "en": "Illustrative use case with demonstration data; it does not show actual results or a live session."
+    },
+    "route": "plataforma/lakehouse/",
+    "asset": "creangel-ifindit-lakehouse.svg"
+  },
+  "ifindit-search": {
+    "title": {
+      "es": "IFINDIT SEARCH en acción",
+      "en": "IFINDIT SEARCH in action"
+    },
+    "description": {
+      "es": "Explore cómo una consulta conecta fuentes y presenta respuestas con referencias.",
+      "en": "Explore how a query connects sources and presents answers with references."
+    },
+    "caption": {
+      "es": "Ilustración de uso con datos demostrativos; no representa resultados reales ni una sesión activa.",
+      "en": "Illustrative use case with demonstration data; it does not show actual results or a live session."
+    },
+    "route": "productos/ifindit-search/",
+    "asset": "creangel-ifindit-search.svg"
+  }
+}

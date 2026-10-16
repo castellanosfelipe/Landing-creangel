@@ -256,6 +256,22 @@ Para añadir un video de YouTube, coloque un enlace Markdown en su propia línea
 
 Al publicar, el enlace se convierte en un reproductor adaptable y conserva el enlace original como alternativa. Los videos se cargan cuando se aproximan al área visible y no se reproducen automáticamente. Solo se generan reproductores para direcciones HTTPS de YouTube con un identificador válido; no es necesario insertar HTML o MDX en el editor.
 
+### 5.2 Ilustraciones de productos
+
+Las siete escenas de productos y capacidades compartidas están en `public/assets/illustrations/`, con sus versiones inglesas en `en/`. El catálogo `ops/illustrations/catalog.json` asocia cada escena con su página y sus textos. Son ejemplos con datos demostrativos.
+
+Los SVG se muestran completos sin JavaScript. Los archivos externos `illustration-motion.css` y `illustration-motion.js` añaden movimiento, pausa y ampliación estática; respetan la preferencia de movimiento reducido y suspenden las animaciones fuera de pantalla. No requieren relajar la política CSP.
+
+Después de modificar una escena o su traducción, regenere las vistas previas PNG y las páginas, en este orden:
+
+```bash
+node ops/illustrations/posters.mjs
+python3 ops/illustrations/apply.py
+python3 ops/seo/apply.py --root public --base-url https://portal.creangel.com
+```
+
+La primera orden requiere las dependencias del proyecto. Las vistas previas PNG se utilizan en Open Graph y Twitter; las ilustraciones SVG permanecen como vectores en las páginas.
+
 ## 6. Estructura del repositorio
 
 ```text

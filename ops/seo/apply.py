@@ -21,6 +21,11 @@ class Page(HTMLParser):
         if tag == 'meta': self.meta[attrs.get('name') or attrs.get('property')] = attrs.get('content', '')
         if tag == 'link' and attrs.get('rel') == 'canonical': self.canonical = attrs.get('href')
         if tag == 'img' and self.main: self.images.append(attrs)
+        if tag == 'svg' and self.main and attrs.get('data-motion-poster'):
+            self.images.append({'src': attrs['data-motion-poster'],
+                                'alt': attrs.get('data-motion-poster-alt', ''),
+                                'width': attrs['width'], 'height': attrs['height'],
+                                'motion_poster': True})
     def handle_data(self, data):
         if self.capture == 'title': self.title += data
         if self.capture == 'h1': self.h1 += data
@@ -45,6 +50,10 @@ def organization(base):
                         'addressLocality': 'Bogotá', 'addressCountry': 'CO'}}
 
 def social_image(page, url, base):
+    for image in page.images:
+        if image.get('motion_poster'):
+            return {'url': urljoin(url, image['src']), 'alt': image['alt'],
+                    'width': int(image['width']), 'height': int(image['height']), 'type': 'image/png'}
     for image in page.images:
         if '/assets/productos/' in urljoin(url, image.get('src', '')):
             return {'url': urljoin(url, image['src']), 'alt': image.get('alt', ''),
