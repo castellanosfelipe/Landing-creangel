@@ -686,6 +686,17 @@ Las pruebas del repositorio abarcan validaciones de cuentas, autenticación, CAP
 
 Las rutas administrativas y otros destinos no indexables deben mantenerse fuera de los resultados de búsqueda. Las pruebas locales no certifican el funcionamiento real de DNS, HTTPS, WAF, certificados, red, permisos del host ni restauración ante desastre.
 
+El build regenera `sitemap.xml` desde el HTML canónico e indexable, incluyendo las páginas comerciales y la documentación en español e inglés con sus alternates `hreflang`. Excluye búsquedas internas, errores, redirecciones y administración. No se inventan fechas `lastmod`: se omiten hasta disponer de una fecha de modificación fiable. `robots.txt` permite rastrear páginas públicas, CSS, JavaScript e imágenes, y evita el rastreo de los endpoints internos. El login y las páginas de búsqueda siguen accesibles al rastreador para que pueda leer su `noindex`; robots.txt no sustituye la autenticación.
+
+Para regenerar los archivos de la fuente comercial y ejecutar las pruebas de rastreo:
+
+```bash
+python3 ops/seo/crawl.py --root public --base-url https://portal.creangel.com
+python3 -m unittest discover -s ops/seo -p 'test_*.py'
+```
+
+Después de desplegar, comprobar que `/robots.txt` y `/sitemap.xml` responden HTTP 200 en el dominio de producción y enviar `https://portal.creangel.com/sitemap.xml` en Google Search Console y Bing Webmaster Tools. El entorno Docker local conserva `Disallow: /` y la cabecera `X-Robots-Tag: noindex, nofollow` intencionalmente; esa protección no debe trasladarse a producción.
+
 ### 13.1 Consideración sobre dependencias
 
 El README original del proyecto informa de un parche reproducible para el aviso asociado a `braces@3.0.3` en documentación. Deben mantenerse ejecutables `npm audit`, `npm run test:dependencies` y los controles de cambio de versión; un parche local **no equivale** a una corrección oficial publicada por el proveedor.

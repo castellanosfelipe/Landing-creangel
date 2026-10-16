@@ -1,3 +1,10 @@
+# Public pages and CSS, JavaScript and images remain crawlable.
 User-agent: *
-Allow: /
+Disallow: /api/
+Disallow: /local/
+Disallow: /auth/
+Disallow: /publish/
+Disallow: /cms-proxy/
+
+# Login, internal search and error pages use noindex, not robots blocking.
 Sitemap: https://portal.creangel.com/sitemap.xml

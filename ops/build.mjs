@@ -39,9 +39,12 @@ externalizeDocumentationScripts(path.join(output, 'documentacion'));
 // Docusaurus locale alternates use /404/ while its error pages are emitted as 404.html.
 for (const locale of ['', 'en/']) {
   const directory=path.join(output,'documentacion',locale);
+  const errorFile=path.join(directory,'404.html');
+  const errorHtml=fs.readFileSync(errorFile,'utf8').replace('</head>','<meta name="robots" content="noindex,follow"></head>');
+  fs.writeFileSync(errorFile,errorHtml);
   const alias=path.join(directory,'404','index.html');
   fs.mkdirSync(path.dirname(alias),{recursive:true});
-  fs.copyFileSync(path.join(directory,'404.html'),alias);
+  fs.copyFileSync(errorFile,alias);
 }
 const admin = path.join(output, 'admin');
 fs.mkdirSync(admin, {recursive: true});
@@ -69,13 +72,8 @@ for (const route of siteConfig.routes) {
   html = html.replace(/(<a href="[^"]*recursos\/">)(Resources|Recursos)(<\/a>)/g, `<a href="${href}">${label}</a>$1$2$3`);
   fs.writeFileSync(file, html);
 }
-// Each Docusaurus locale emits its own sitemap. Include both language trees.
-const docsEntries = ['', 'en'].flatMap(locale => {
-  const sitemap = path.join(output, 'documentacion', locale, 'sitemap.xml');
-  return fs.existsSync(sitemap) ? fs.readFileSync(sitemap, 'utf8').match(/<url>.*?<\/url>/gs) || [] : [];
-});
-const sitemap = path.join(output, 'sitemap.xml');
-fs.writeFileSync(sitemap, fs.readFileSync(sitemap, 'utf8').replace('</urlset>', docsEntries.join('') + '</urlset>'));
+// Rebuild crawl files from canonical HTML, including both documentation locales.
+run(python, ['ops/seo/crawl.py', '--root', output, '--base-url', siteURL]);
 const manifest = {
   schema: 2, version: '2.0.0', site_url: siteURL,
   commercial_pages: siteConfig.routes.length,

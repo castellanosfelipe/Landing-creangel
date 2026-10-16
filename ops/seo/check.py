@@ -5,6 +5,7 @@ from urllib.parse import urljoin, urlsplit, unquote
 from xml.etree import ElementTree as ET
 from collections import Counter, deque
 import argparse, json, re, os
+from crawl import is_indexable, validate as validate_crawl
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -65,7 +66,7 @@ def check(root, base):
         expected=base+route; context=urljoin(expected,page.base) if page.base else expected
         if page.canonical!=[expected]: errors.append({'route':route,'error':'canonical','value':page.canonical})
         if len(page.h1)!=1 or page.main_count!=1: errors.append({'route':route,'error':'main_h1'})
-        indexable='noindex' not in page.value('robots')
+        indexable=is_indexable(page)
         for key in ('description','og:title','og:description','og:url','og:image','twitter:card','twitter:image',
                     'twitter:title','twitter:description','og:image:alt','og:image:width','og:image:height'):
             if len(page.meta.get(key,[]))!=1 or not page.value(key): errors.append({'route':route,'error':'metadata','key':key})
@@ -121,8 +122,7 @@ def check(root, base):
     for row in inventory: row['navigation_depth']=depth.get(row['route'])
     orphans=[r['route'] for r in inventory if r['indexable'] and r['navigation_depth'] is None]
     if orphans: errors.append({'error':'orphan_pages','routes':orphans})
-    robots=(root/'robots.txt').read_text('utf-8')
-    if 'Sitemap: '+base+'/sitemap.xml' not in robots: errors.append({'error':'robots_sitemap'})
+    errors.extend(validate_crawl(root,base))
     return {'passed':not errors,'canonical_pages':len(inventory),'indexable_pages':len(indexable),'sitemap_urls':len(locations),
             'internal_references':checked_refs,'orphan_pages':orphans,'max_navigation_depth':max(depth.values(),default=0),
             'jsonld_types':dict(types),'errors':errors,'pages':inventory}
