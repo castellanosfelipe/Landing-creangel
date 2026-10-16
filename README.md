@@ -260,7 +260,7 @@ Al publicar, el enlace se convierte en un reproductor adaptable y conserva el en
 
 Las siete escenas de productos y capacidades compartidas están en `public/assets/illustrations/`, con sus versiones inglesas en `en/`. El catálogo `ops/illustrations/catalog.json` asocia cada escena con su página y sus textos. Son ejemplos con datos demostrativos.
 
-Los SVG se muestran completos sin JavaScript. Los archivos externos `illustration-motion.css` y `illustration-motion.js` añaden movimiento, pausa y ampliación estática; respetan la preferencia de movimiento reducido y suspenden las animaciones fuera de pantalla. No requieren relajar la política CSP.
+Los SVG se muestran completos sin JavaScript. El mapa inferior permite abrir cada producto con enlaces que resaltan al pasar el cursor o recibir el foco del teclado, también en la vista ampliada. Los archivos externos `illustration-motion.css` y `illustration-motion.js` añaden movimiento, pausa y ampliación estática; respetan la preferencia de movimiento reducido y suspenden las animaciones fuera de pantalla. No requieren relajar la política CSP.
 
 Después de modificar una escena o su traducción, regenere las vistas previas PNG y las páginas, en este orden:
 

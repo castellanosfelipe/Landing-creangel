@@ -48,6 +48,14 @@
 
   function updateAll() { states.forEach(update); }
 
+  // SVG links do not consistently scroll into view when reached with Tab.
+  // Delegation also covers the links in the enlarged illustration.
+  document.addEventListener('focusin',event => {
+    if (event.target instanceof Element && event.target.matches('.ifm-product-link')) {
+      event.target.scrollIntoView({block:'nearest',inline:'nearest'});
+    }
+  });
+
   // A second inline SVG needs fresh IDs for filters, gradients and accessible names.
   function isolateReferences(svg) {
     const prefix = `ifm-expanded-${++cloneNumber}-`;

@@ -118,6 +118,20 @@
 /* Freeze labels and their containing panels without cancelling SVG placement. */
 .ifindit-motion-graphic .ifm-fixed-label { animation:none!important; }
 
+.ifm-product-link { cursor:pointer; }
+.ifm-product-link-badge { pointer-events:none; }
+.ifm-product-link:is(:hover,:focus-visible) { outline:none; }
+.ifm-product-link:is(:hover,:focus-visible) .ifm-product-link-base {
+  fill:#0b4b82;
+  stroke:#fbd327;
+  stroke-width:4;
+}
+.ifm-product-link:is(:hover,:focus-visible) .ifm-product-link-label { fill:#fff; }
+@media (forced-colors:active) {
+  .ifm-product-link:is(:hover,:focus-visible) .ifm-product-link-base { fill:Highlight; stroke:HighlightText; }
+  .ifm-product-link:is(:hover,:focus-visible) .ifm-product-link-label { fill:HighlightText; }
+}
+
 @keyframes ifm-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
 @keyframes ifm-pulse { 0%,100% { transform:scale(.96); opacity:.6; } 50% { transform:scale(1.06); opacity:.9; } }
 @keyframes ifm-flow { to { stroke-dashoffset:-40; } }
