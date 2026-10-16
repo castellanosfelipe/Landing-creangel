@@ -54,7 +54,6 @@ def apply():
             scene = svg_markup(PUBLIC / asset, poster, entry['description'][locale])
             title = html.escape(entry['title'][locale], quote=True)
             description = html.escape(entry['description'][locale])
-            caption = html.escape(entry['caption'][locale])
             eyebrow = 'Explore how it works' if english else 'Conozca cómo funciona'
             pause = 'Pause animation' if english else 'Pausar animación'
             expand = 'Enlarge illustration' if english else 'Ampliar ilustración'
@@ -66,7 +65,7 @@ def apply():
                 f'<button type="button" data-motion-toggle aria-pressed="false">{pause}</button>'
                 f'<button type="button" data-motion-expand>{expand}</button></div></div>'
                 f'<figure class="product-motion" data-motion-illustration data-motion-title="{title}">'
-                f'<div class="product-motion-canvas">{scene}</div><figcaption>{caption}</figcaption>'
+                f'<div class="product-motion-canvas">{scene}</div>'
                 '</figure></div></section>' + END
             )
             # Retire only the superseded hero artwork; the wheel, copy and catalogue stay intact.
